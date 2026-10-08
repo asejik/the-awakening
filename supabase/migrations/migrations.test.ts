@@ -34,6 +34,7 @@ beforeEach(async () => {
   await db.exec(sql('001_registrations.sql'))
   await db.exec(sql('002_ops.sql'))
   await db.exec(sql('003_rate_limit.sql'))
+  await db.exec(sql('004_harden_defaults.sql'))
 })
 
 describe('001_registrations', () => {
@@ -164,6 +165,17 @@ describe('001_registrations', () => {
     await register(person('08011111111', 'a@example.com'))
     const [{ s }] = await rpc<{ s: Record<string, number> }>(`select public.ops_summary('awakening-2026') as s`)
     expect(s.last_hour).toBe(1)
+  })
+
+  it('004 revokes public EXECUTE on a Supabase SECURITY DEFINER helper when present', async () => {
+    await db.exec(`create function public.rls_auto_enable() returns void language sql security definer as 'select'`)
+    await db.exec(`grant execute on function public.rls_auto_enable() to anon, authenticated`)
+    await db.exec(sql('004_harden_defaults.sql'))
+    const [{ anon_exec }] = await rpc<{ anon_exec: boolean }>(
+      `select has_function_privilege('anon', 'public.rls_auto_enable()', 'execute') as anon_exec`)
+    expect(anon_exec).toBe(false)
+    await db.exec(sql('004_harden_defaults.sql')) // idempotent
+    await db.exec('drop function public.rls_auto_enable()')
   })
 
   it('003 rolls back to 002', async () => {
