@@ -1,6 +1,8 @@
 // Startup checks shared by the API routes. A misconfiguration fails loudly (503 + error log)
 // instead of silently skipping emails or breaking every insert (P03-03, P03-07).
 
+import { parseWindowTime } from '../../shared/window.js'
+
 const REQUIRED = ['SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'EVENT_SLUG', 'EMAIL_MODE'] as const
 
 /** Returns a reason string if the server can't safely take registrations, else null. */
@@ -12,6 +14,9 @@ export function configProblem(env: NodeJS.ProcessEnv = process.env): string | nu
   if (env.EMAIL_MODE !== 'smtp' && env.EMAIL_MODE !== 'log') return 'EMAIL_MODE must be smtp or log'
   // Log mode in production would silently skip every confirmation email.
   if (env.VERCEL_ENV === 'production' && env.EMAIL_MODE !== 'smtp') return 'EMAIL_MODE must be smtp in production'
+  for (const k of ['REGISTRATION_OPENS_AT', 'REGISTRATION_CLOSES_AT'] as const) {
+    if (parseWindowTime(env[k]) === 'invalid') return `${k} must be ISO 8601 with an offset, e.g. 2026-10-25T12:00:00+01:00`
+  }
   return null
 }
 

@@ -61,6 +61,11 @@ describe('registrationSchema', () => {
     expect(toPayload(registrationSchema.parse({ ...valid, area: 'Tanke', address: 'Block C' }))).toMatchObject({ area: '', address: '' })
   })
 
+  it('reports transport and institution errors together with other field errors', () => {
+    const errors = errorsFor({ ...valid, full_name: '', needs_transport: 'Yes', institution: 'Other' })
+    expect(Object.keys(errors).sort()).toEqual(['address', 'area', 'full_name', 'institution_other'])
+  })
+
   it('caps long input', () => {
     expect(errorsFor({ ...valid, full_name: 'x'.repeat(81) })).toEqual({ full_name: 'Keep it under 80 characters' })
   })

@@ -29,7 +29,7 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
 - `npm run typecheck`: `tsc -b` across three projects: `tsconfig.app.json` (src), `tsconfig.node.json` (configs) and `tsconfig.api.json` (api)
 - `npm run lint`: oxlint, config in `.oxlintrc.json`
 - `npm test`: runs all Vitest tests (`src/**/*.test.ts`, `api/**/*.test.ts`). For a single test: `npx vitest run path/to/file.test.ts -t "name"`.
-- Playwright end-to-end tests arrive in M4 (`npx playwright test e2e/file.spec.ts -g "name"`).
+- `npm run test:e2e`: Playwright smoke tests (`e2e/`). They start their own dev server on :3200 against TEST with `EMAIL_MODE=log`, and delete `source=e2e` rows afterwards. For a single test: `npx playwright test e2e/registration.spec.ts -g "name"`. E2E submits wait 3s, because the server treats faster submits as bots.
 
 ## Layout
 
@@ -55,6 +55,8 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
 - **No secrets in `VITE_` variables.** `VITE_` variables are compiled into the bundle. The secrets are `SUPABASE_SECRET_KEY`, `SMTP_USER`, `SMTP_PASS`, `RETRY_SECRET` and `DRAW_PASSPHRASE`, and they stay server-side.
 - **Reuse:** event content lives in `shared/event.ts` (used by page and server), plus env vars (`EVENT_SLUG`, open/close times). Every table has an `event` column; each event gets its own Sheet.
 - **Prerender and hydration:** `dist/index.html` contains the server-rendered app and `main.tsx` hydrates it. Anything rendered at first paint must be SSR-safe (no `window` during render). The lazy `RegistrationForm` mounts only after hydration (`hydrated` flag in `App.tsx`); keep it that way, or React throws error #419.
+- **Registration window and bots:** `GET /api/status` says open, not_open or closed (unconfigured = not_open = "opens soon"). `/api/register` returns 403 outside the window. A filled `website` honeypot or `elapsed_ms` under 3000 gets a fake `duplicate` reply, with nothing saved or emailed. Any client that POSTs (scripts, tests) must send `website: ''` and a realistic `elapsed_ms`.
+- **Pages:** `index.html` (app) and `privacy.html` (`/privacy` via `cleanUrls`), both pre-rendered by `scripts/prerender.mjs` from `src/entry-server.tsx`'s `pages` map.
 - **Environments:** local and Preview use the TEST Supabase project, TEST Sheet and `EMAIL_MODE=log`. Production uses LIVE with `EMAIL_MODE=smtp`. Migrations run on TEST first, then LIVE.
 
 ## Visual identity (full system in `docs/DESIGN.md`; source artwork in `brand/`)

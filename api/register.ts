@@ -1,16 +1,37 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { waitUntil } from '@vercel/functions'
 import { fieldErrors, registrationSchema, toPayload } from '../shared/registration.js'
+import { registrationWindow } from '../shared/window.js'
 import { checkConfig, scrub } from './_lib/config.js'
 import { registerAttendee } from './_lib/db.js'
 import { sendConfirmation } from './_lib/send-confirmation.js'
+
+const MIN_FILL_MS = 3_000
+
+function looksLikeBot(body: Record<string, unknown>): boolean {
+  const honeypot = typeof body.website === 'string' && body.website.trim() !== ''
+  const elapsed = body.elapsed_ms
+  return honeypot || typeof elapsed !== 'number' || !Number.isFinite(elapsed) || elapsed < MIN_FILL_MS
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ status: 'method_not_allowed' })
   if (!checkConfig()) return res.status(503).json({ status: 'unavailable' })
 
+  // Server-enforced window: a stale page can't register after closing.
+  const window = registrationWindow(new Date(), process.env.REGISTRATION_OPENS_AT, process.env.REGISTRATION_CLOSES_AT)
+  if (window !== 'open') return res.status(403).json({ status: window })
+
+  // Bots: a filled honeypot or a sub-3s submit gets the same reply as a human duplicate,
+  // so nothing is saved or emailed and the bot learns nothing.
+  const raw = (typeof req.body === 'object' && req.body) || {}
+  if (looksLikeBot(raw)) {
+    console.log(JSON.stringify({ evt: 'register.bot' }))
+    return res.status(200).json({ status: 'duplicate' })
+  }
+
   // Same schema as the page; never trust the browser's validation.
-  const parsed = registrationSchema.safeParse(typeof req.body === 'object' && req.body ? req.body : {})
+  const parsed = registrationSchema.safeParse(raw)
   if (!parsed.success) return res.status(400).json({ status: 'invalid', fields: fieldErrors(parsed.error) })
   const payload = toPayload(parsed.data)
 

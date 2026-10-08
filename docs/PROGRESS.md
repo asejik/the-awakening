@@ -115,3 +115,16 @@
 - **Checks:** 80 tests (9 files). End-to-end against TEST: ticket, duplicate (no code), offline banner, no console errors.
 - **Found:** React Email Tailwind applies `sm:` everywhere, and `<Font>` overrides all text; both are avoided (DESIGN.md §11).
 - **Next:** builder sign-off on the screenshots; one real email to Gmail (images show once main is deployed); then M4.
+
+## 2026-10-08 · M4 hardening: complete (FEATURE)
+- **Changed:**
+  - Registration window: `shared/window.ts`, `GET /api/status`, 403 outside the window. "Opens soon" and "closed" panels. Unconfigured production shows "opens soon", so `main` is safe to push.
+  - Bot traps: honeypot plus a 3s minimum fill time, answered with a fake duplicate.
+  - Answers saved per tab (sessionStorage, fails safely).
+  - `/privacy` notice (NDPA), contact clcchurchmedia@gmail.com, linked from the consent and pre-rendered.
+  - Cross-field errors (bus/area/address, Other institution) now show together with other errors; found by the e2e tests.
+  - Playwright smoke tests (6) with automatic cleanup.
+  - `docs/SETUP_NEW_EVENT.md`.
+  - Close time default: **2026-10-25T12:00:00+01:00** (builder decision).
+- **Checks:** see the commit; e2e 6/6, and 0 e2e rows left in TEST.
+- **Next:** P04 + P08 + P03 PRE-LAUNCH, then M5 launch.

@@ -27,17 +27,24 @@ export const registrationSchema = z
     followup_optin: z.boolean().default(false),
     source: z.string().trim().max(40).default(''),
   })
-  .superRefine((v, ctx) => {
-    if (v.institution === INSTITUTION_OTHER && v.institution_other.length < 2) {
-      ctx.addIssue({ code: 'custom', path: ['institution_other'], message: 'Enter the name of your institution' })
-    }
-    if (v.needs_transport === 'Yes') {
-      if (v.area.length < 2) ctx.addIssue({ code: 'custom', path: ['area'], message: 'Tell us your area, e.g. Tanke' })
-      if (v.address.length < 5) {
-        ctx.addIssue({ code: 'custom', path: ['address'], message: 'Add your address so we can plan the bus' })
+  // Cross-field rules run even when other fields are invalid (`when`), so people see every error at once.
+  // The value may then be partly invalid, so read it defensively.
+  .superRefine(
+    (value, ctx) => {
+      const v = value as Record<string, unknown>
+      const text = (key: string) => (typeof v[key] === 'string' ? (v[key] as string).trim() : '')
+      if (v.institution === INSTITUTION_OTHER && text('institution_other').length < 2) {
+        ctx.addIssue({ code: 'custom', path: ['institution_other'], message: 'Enter the name of your institution' })
       }
-    }
-  })
+      if (v.needs_transport === 'Yes') {
+        if (text('area').length < 2) ctx.addIssue({ code: 'custom', path: ['area'], message: 'Tell us your area, e.g. Tanke' })
+        if (text('address').length < 5) {
+          ctx.addIssue({ code: 'custom', path: ['address'], message: 'Add your address so we can plan the bus' })
+        }
+      }
+    },
+    { when: () => true },
+  )
 
 export type RegistrationInput = z.input<typeof registrationSchema>
 export type Registration = z.output<typeof registrationSchema>

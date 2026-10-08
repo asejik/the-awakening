@@ -17,4 +17,9 @@ const injectSiteUrl = (): Plugin => ({
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss(), injectSiteUrl()],
+  build: {
+    rollupOptions: {
+      input: { main: 'index.html', privacy: 'privacy.html' },
+    },
+  },
 })

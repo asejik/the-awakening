@@ -6,6 +6,8 @@ export const EVENT = {
   name: 'The Awakening',
   tagline: 'Freshers Plug In',
   host: 'Citizens of Light Church',
+  /** Privacy requests (access, correction, deletion). Builder decision 2026-10-08. */
+  contactEmail: 'clcchurchmedia@gmail.com',
   days: [
     { label: 'Day 1', date: 'Oct. 24th', weekday: 'Saturday', time: '4PM' },
     { label: 'Day 2', date: 'Oct. 25th', weekday: 'Sunday', time: '9AM' },

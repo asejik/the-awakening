@@ -18,6 +18,11 @@ describe('configProblem', () => {
     expect(configProblem({ ...ok, VERCEL_ENV: 'production', EMAIL_MODE: 'smtp' })).toBeNull()
     expect(configProblem({ ...ok, VERCEL_ENV: 'preview' })).toBeNull()
   })
+  it('rejects window times without an offset', () => {
+    expect(configProblem({ ...ok, REGISTRATION_CLOSES_AT: '2026-10-25T12:00' })).toMatch(/REGISTRATION_CLOSES_AT/)
+    expect(configProblem({ ...ok, REGISTRATION_CLOSES_AT: '2026-10-25T12:00:00+01:00' })).toBeNull()
+  })
+
   it('rejects unknown email modes', () => {
     expect(configProblem({ ...ok, EMAIL_MODE: 'SMTP ' })).toMatch(/EMAIL_MODE/)
   })

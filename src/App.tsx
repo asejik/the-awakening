@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState, useSyncExternalStore } from 'react'
+import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from 'react'
+import { ClosedPanel } from './components/ClosedPanel'
 import { DuplicateNotice } from './components/DuplicateNotice'
 import { Hero } from './components/hero/Hero'
 import { SuccessTicket } from './components/SuccessTicket'
@@ -7,12 +8,27 @@ import { SuccessTicket } from './components/SuccessTicket'
 const RegistrationForm = lazy(() => import('./components/RegistrationForm').then((m) => ({ default: m.RegistrationForm })))
 
 type Done = { kind: 'created'; code: string; fullName: string } | { kind: 'duplicate' }
+type Status = { state: 'loading' | 'open' | 'not_open' | 'closed'; opensAt?: string | null }
 
 export default function App() {
   const [done, setDone] = useState<Done | null>(null)
   // The prerendered HTML and the first client render both show the placeholder (hydration matches);
   // the lazy form mounts only after hydration, so React never tries to server-render it.
   const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false)
+  const [status, setStatus] = useState<Status>({ state: 'loading' })
+
+  // Which screen to show (open / opens soon / closed). If the check fails, show the form:
+  // the server still enforces the window.
+  useEffect(() => {
+    let live = true
+    fetch('/api/status', { signal: AbortSignal.timeout(8_000) })
+      .then((r) => r.json())
+      .then((s: Status) => live && setStatus(s.state ? s : { state: 'open' }))
+      .catch(() => live && setStatus({ state: 'open' }))
+    return () => {
+      live = false
+    }
+  }, [])
 
   const finish = (result: Done) => {
     window.scrollTo(0, 0)
@@ -34,14 +50,18 @@ export default function App() {
           Plug in. Grab your raffle ticket.
         </h2>
         <p id="form-intro" className="mb-5 mt-1.5 font-text text-lead text-muted">
-          Takes about a minute. You'll get a raffle code for the prize draw at the event.
+          {status.state === 'not_open' || status.state === 'closed'
+            ? "Registration happens right here on this page."
+            : "Takes about a minute. You'll get a raffle code for the prize draw at the event."}
         </p>
-        {hydrated ? (
+        {!hydrated || status.state === 'loading' ? (
+          <FormPlaceholder />
+        ) : status.state === 'open' ? (
           <Suspense fallback={<FormPlaceholder />}>
-            <RegistrationForm onDone={finish} />
+            <RegistrationForm onDone={finish} onClosed={(state) => setStatus({ state })} />
           </Suspense>
         ) : (
-          <FormPlaceholder />
+          <ClosedPanel state={status.state} opensAt={status.opensAt} />
         )}
       </section>
     </main>

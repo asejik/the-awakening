@@ -33,6 +33,8 @@ const person = (i, phone = '090' + rand(8)) => ({
   consent: true,
   age_confirmed: true,
   source: 'loadtest',
+  website: '',
+  elapsed_ms: 30_000, // past the 3s bot check
 })
 
 async function post(body) {

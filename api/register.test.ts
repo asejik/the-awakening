@@ -32,7 +32,7 @@ async function call(body: unknown, method = 'POST') {
 const valid = {
   full_name: 'Tolulope Adeyemi', gender: 'Female', institution: 'University of Ilorin',
   department: 'Law', phone: '+234 801 234 5678', email: 'Tolu@Example.com',
-  needs_transport: 'No', consent: true, age_confirmed: true,
+  needs_transport: 'No', consent: true, age_confirmed: true, website: '', elapsed_ms: 45_000,
 }
 
 beforeEach(() => {
@@ -63,6 +63,32 @@ describe('POST /api/register', () => {
     } finally {
       delete process.env.VERCEL_ENV
     }
+  })
+
+  it('refuses registrations outside the window (403) without touching the database', async () => {
+    process.env.REGISTRATION_CLOSES_AT = '2020-01-01T00:00:00+01:00'
+    try {
+      const res = await call(valid)
+      expect(res).toMatchObject({ statusCode: 403, body: { status: 'closed' } })
+      process.env.REGISTRATION_CLOSES_AT = ''
+      process.env.REGISTRATION_OPENS_AT = '2999-01-01T00:00:00+01:00'
+      expect(await call(valid)).toMatchObject({ statusCode: 403, body: { status: 'not_open' } })
+      expect(registerAttendee).not.toHaveBeenCalled()
+    } finally {
+      delete process.env.REGISTRATION_CLOSES_AT
+      delete process.env.REGISTRATION_OPENS_AT
+    }
+  })
+
+  it.each([
+    ['a filled honeypot', { website: 'http://spam.example' }],
+    ['a sub-3-second submit', { elapsed_ms: 900 }],
+    ['a missing timing field', { elapsed_ms: undefined }],
+  ])('treats %s as a bot: duplicate-shaped reply, nothing saved or emailed', async (_label, extra) => {
+    const res = await call({ ...valid, ...extra })
+    expect(res).toMatchObject({ statusCode: 200, body: { status: 'duplicate' } })
+    expect(registerAttendee).not.toHaveBeenCalled()
+    expect(sendMail).not.toHaveBeenCalled()
   })
 
   it('rejects invalid input with the failing fields', async () => {

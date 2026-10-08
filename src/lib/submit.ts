@@ -6,11 +6,15 @@ export type SubmitResult =
   | { kind: 'invalid'; fields: Record<string, string> }
   | { kind: 'offline' }
   | { kind: 'error' }
+  | { kind: 'closed' | 'not_open' }
+
+/** Sent alongside the form: a hidden honeypot and how long the form was open (server bot check). */
+export type BotSignals = { website: string; elapsed_ms: number }
 
 const TIMEOUT_MS = 25_000
 
 /** POSTs the validated form. Never throws: every outcome maps to a screen state. */
-export async function submitRegistration(values: Registration): Promise<SubmitResult> {
+export async function submitRegistration(values: Registration, signals: BotSignals): Promise<SubmitResult> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return { kind: 'offline' }
 
   let res: Response
@@ -18,7 +22,7 @@ export async function submitRegistration(values: Registration): Promise<SubmitRe
     res = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
+      body: JSON.stringify({ ...values, ...signals }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     })
   } catch {
@@ -31,6 +35,7 @@ export async function submitRegistration(values: Registration): Promise<SubmitRe
   }
   if (res.status === 200 && body.status === 'duplicate') return { kind: 'duplicate' }
   if (res.status === 400 && body.fields) return { kind: 'invalid', fields: body.fields }
+  if (res.status === 403 && (body.status === 'closed' || body.status === 'not_open')) return { kind: body.status }
   return { kind: 'error' }
 }
 
