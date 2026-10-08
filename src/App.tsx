@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useState, useSyncExternalStore } from 'react'
 import { DuplicateNotice } from './components/DuplicateNotice'
 import { Hero } from './components/hero/Hero'
 import { SuccessTicket } from './components/SuccessTicket'
@@ -12,8 +12,7 @@ export default function App() {
   const [done, setDone] = useState<Done | null>(null)
   // The prerendered HTML and the first client render both show the placeholder (hydration matches);
   // the lazy form mounts only after hydration, so React never tries to server-render it.
-  const [hydrated, setHydrated] = useState(false)
-  useEffect(() => setHydrated(true), [])
+  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false)
 
   const finish = (result: Done) => {
     window.scrollTo(0, 0)
@@ -52,3 +51,5 @@ export default function App() {
 function FormPlaceholder() {
   return <div className="min-h-[900px]" aria-busy="true" />
 }
+
+const noopSubscribe = () => () => {}
