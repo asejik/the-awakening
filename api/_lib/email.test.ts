@@ -22,7 +22,7 @@ describe('confirmation email', () => {
     const m = confirmationEmail('t@x.co', 'Tolu Adeyemi', 'K7QX', false)
     expect(m.text).toContain('YOUR RAFFLE CODE: K7QX')
     expect(m.text).toContain('Freedom Dome, Ilesanmi Bus Stop, Tanke, Ilorin')
-    expect(m.text).toContain('Saturday, Oct. 24th · 4PM')
+    expect(m.text).toContain('Saturday, Oct. 31st · 4PM')
   })
 
   it('uses absolute image URLs from SITE_URL', () => {

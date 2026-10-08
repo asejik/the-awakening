@@ -4,7 +4,7 @@
 
 ## What we're building
 
-A registration page for **The Awakening: Freshers Plug In** (Oct 24–25, Freedom Dome, Tanke), designed to match the event flyer and work well on phones.
+A registration page for **The Awakening: Freshers Plug In** (**Saturday Oct 31, 4PM and Sunday Nov 1, 9AM**; rescheduled from Oct 24–25; Freedom Dome, Ilesanmi Bus Stop, Tanke, Ilorin), designed to match the event flyer and work well on phones.
 
 When a student registers:
 
@@ -40,7 +40,7 @@ We're happy to discuss any of these as a later addition.
 | By Oct 20 | Raffle draw screen ready | Rehearse the draw |
 | Oct 21 onwards | No new changes, only fixes | — |
 | Oct 22 | Final list for bus planning | Send pickup points to students |
-| Oct 24–25 | The event and raffle draw | — |
+| Oct 31 – Nov 1 | The event and raffle draw | — |
 | After the event | Close registration and secure the account | — |
 
 **If anything puts the Oct 14 launch at risk,** we'll tell you immediately and switch to a branded Google Form, so the outreach isn't wasted.

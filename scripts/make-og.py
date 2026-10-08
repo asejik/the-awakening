@@ -11,7 +11,7 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 
 LILITA, BARLOW = sys.argv[1], sys.argv[2]
-LINES_BIG = ['OCT. 24TH · 4PM', 'OCT. 25TH · 9AM']
+LINES_BIG = ['SAT. OCT. 31ST · 4PM', 'SUN. NOV. 1ST · 9AM']
 LINES_SMALL = ['FREEDOM DOME, ILESANMI BUS STOP,', 'TANKE, ILORIN']
 
 W, H, S = 1200, 630, 2

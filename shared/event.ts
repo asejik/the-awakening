@@ -9,14 +9,15 @@ export const EVENT = {
   /** Privacy requests (access, correction, deletion). Builder decision 2026-10-08. */
   contactEmail: 'clcchurchmedia@gmail.com',
   days: [
-    { label: 'Day 1', date: 'Oct. 24th', weekday: 'Saturday', time: '4PM' },
-    { label: 'Day 2', date: 'Oct. 25th', weekday: 'Sunday', time: '9AM' },
+    // Rescheduled 2026-10-08 (builder): was Oct 24–25.
+    { label: 'Day 1', date: 'Oct. 31st', weekday: 'Saturday', time: '4PM' },
+    { label: 'Day 2', date: 'Nov. 1st', weekday: 'Sunday', time: '9AM' },
   ],
   /** Always shown in full (builder decision 2026-10-08). */
   venue: 'Freedom Dome, Ilesanmi Bus Stop, Tanke, Ilorin',
   programme: ['Music', 'Freedom Studio Film', 'Word', 'Conscious Flow', 'Prayer'],
   /** For structured data (SEO). The end time isn't known, so the end is a date only. */
-  schedule: { start: '2026-10-24T16:00:00+01:00', endDate: '2026-10-25' },
+  schedule: { start: '2026-10-31T16:00:00+01:00', endDate: '2026-11-01' },
   place: { name: 'Freedom Dome', street: 'Ilesanmi Bus Stop, Tanke', locality: 'Ilorin', region: 'Kwara', country: 'NG' },
 } as const
 

@@ -23,7 +23,7 @@ export function Hero() {
 
       <div className="relative mx-auto max-w-[440px] px-4 pt-4">
         {/* The supplied logo, unaltered: it already carries the church name. */}
-        <picture className="block w-20">
+        <picture className="block w-14">
           <source srcSet="/assets/clc-logo.webp" type="image/webp" />
           <img src="/assets/clc-logo.png" alt={EVENT.host} width={264} height={336} className="h-auto w-full" />
         </picture>

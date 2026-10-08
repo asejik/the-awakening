@@ -5,7 +5,8 @@ For the Citizens of Light Church team. No technical knowledge needed, except whe
 - **Registration page:** https://the-awakening-rho.vercel.app
 - **Privacy notice:** https://the-awakening-rho.vercel.app/privacy
 - **Contact address on the site:** clcchurchmedia@gmail.com
-- **Registration closes:** Sunday 25 October 2026, 12:00 noon (WAT)
+- **Event:** Saturday 31 October (4PM) and Sunday 1 November 2026 (9AM)
+- **Registration closes:** Sunday 1 November 2026, 12:00 noon (WAT)
 
 ---
 
@@ -65,7 +66,7 @@ Under Nigerian data protection law, people can ask to see, correct or delete the
 ## 6. Changing when registration closes (builder)
 
 1. Vercel → the-awakening → Settings → Environment Variables (Production) → `REGISTRATION_CLOSES_AT`.
-2. Set the new time **with the +01:00 offset**, e.g. `2026-10-25T14:00:00+01:00`.
+2. Set the new time **with the +01:00 offset**, e.g. `2026-11-01T14:00:00+01:00`.
 3. **Deployments → the latest Production deployment → ⋯ → Redeploy.** Changes only apply after a redeploy.
 
 **To close immediately:** set the time to a moment in the past, then redeploy. The page switches to "Registration is closed".
@@ -81,7 +82,7 @@ Under Nigerian data protection law, people can ask to see, correct or delete the
 
 ## 8. Backups (builder)
 
-**Export everything to a CSV** each evening from 20 October, and again before the draw:
+**Export everything to a CSV** each evening from 27 October, and again before the draw:
 ```bash
 node --env-file=.env.live scripts/export-registrations.mjs > awakening-$(date +%F).csv
 ```

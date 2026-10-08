@@ -10,7 +10,7 @@ Each question has a **suggested answer**. If you're not sure, simply reply "go w
 
 ### Raffle draw
 
-**1. On which day will the raffle draw take place: Day 1 (Oct 24), Day 2 (Oct 25), or both?**
+**1. On which day will the raffle draw take place: Day 1 (Sat Oct 31), Day 2 (Sun Nov 1), or both?**
 *Why it matters:* it decides how long registration should stay open, and when the list of codes must be final.
 *Suggested answer:* **Day 2**, near the end of the programme, so the most people are present.
 

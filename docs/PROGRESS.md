@@ -156,3 +156,9 @@
   - `Deletions` tab in `setupSheet`
 - **Decisions:** open as soon as LIVE is verified; LIVE alerts to clcchurchmedia@gmail.com; one custom QR (Awakening logo in the centre), made after launch.
 - **Next:** builder sets up LIVE (Supabase 001–004, Vercel Production env, LIVE Sheet). Then smoke test, a real registration, Yahoo/Outlook and WhatsApp checks, go-live, QR code.
+
+## 2026-10-08 · Event rescheduled + logo size (builder request after the live phone test)
+- The live phone test passed ("everything worked well").
+- **Dates:** now **Sat Oct 31, 4PM and Sun Nov 1, 9AM** (was Oct 24–25). Updated `shared/event.ts` (badges, ticket, email, JSON-LD), meta and OG text, `og.jpg`, the email template, ADMIN_GUIDE, PLAN_SUMMARY, PROJECT_PLAN, CLIENT_QUESTIONS and `.env.example`. Historical docs (IDEA_BRIEF, audits) keep the old dates as written at the time.
+- **Close time** must move to `2026-11-01T12:00:00+01:00` in Vercel Production (builder action).
+- **Logo:** 80 → 56px, so its text sits on cream, clear of the starburst.

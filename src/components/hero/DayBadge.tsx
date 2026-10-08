@@ -5,7 +5,7 @@ type Props = { label: string; date: string; time: string; reverse?: boolean }
 /** Maroon disc with rotating ring text, lifted from the flyer (DESIGN.md §7 "Day badge"). */
 export function DayBadge({ label, date, time, reverse = false }: Props) {
   const pathId = useId()
-  const [month, day] = date.split(' ') // "Oct. 24th" → "Oct." / "24th"
+  const [month, day] = date.split(' ') // "Oct. 31st" → "Oct." / "31st"
   const ring = `${label.toUpperCase()} · `.repeat(5)
 
   return (

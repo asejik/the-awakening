@@ -1,7 +1,7 @@
 # Project Plan: The Awakening Registration
 
 Mode: NEW · Source: [IDEA_BRIEF.md](IDEA_BRIEF.md) · Client answers: pending ([CLIENT_QUESTIONS.md](CLIENT_QUESTIONS.md)). Recommended defaults are used and marked [ASSUMPTION].
-Prepared 2026-10-08. Event: Oct 24–25, 2026. Target launch: **Oct 13**, with a hard fallback deadline of Oct 14.
+Prepared 2026-10-08. Event: **Sat Oct 31 (4PM) & Sun Nov 1 (9AM), 2026** (rescheduled from Oct 24–25 on 2026-10-08; registration closes Nov 1, 12:00 WAT). Target launch: **Oct 13**, with a hard fallback deadline of Oct 14.
 
 > **Revision 2 (2026-10-08): Supabase is now where registrations are saved, and the Google Sheet is a mirror.**
 > - **Why:** M1 showed the lock-based Apps Script design handles one registration every 1–3s. At only 10 simultaneous submits, 4 of 10 timed out (see PROGRESS.md).

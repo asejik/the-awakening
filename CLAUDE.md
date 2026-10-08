@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A branded, mobile-first registration page for **The Awakening: Freshers Plug In** (Citizens of Light Church, Ilorin; Oct 24–25, 2026). Each registrant gets a unique 4-character raffle code, shown on screen and emailed, and becomes one row in the church's Google Sheet. A passphrase-protected raffle draw page comes after launch.
+A branded, mobile-first registration page for **The Awakening: Freshers Plug In** (Citizens of Light Church, Ilorin; Sat Oct 31 4PM & Sun Nov 1 9AM, 2026, rescheduled from Oct 24–25). Each registrant gets a unique 4-character raffle code, shown on screen and emailed, and becomes one row in the church's Google Sheet. A passphrase-protected raffle draw page comes after launch.
 
 - **Owner:** client, Citizens of Light Church. Built by asejik.
 - **Rigor level:** STANDARD

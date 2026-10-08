@@ -95,7 +95,7 @@ All sizes in px, mobile-first. Desktop is the same: it's a single column.
   - section padding: 24–32px vertical
   - label to input: 5px
 - Hero order (fixed):
-  1. CLC logo (as supplied, 80px wide)
+  1. CLC logo (as supplied, 56px wide, clear of the starburst)
   2. Day badges (left and right)
   3. Title artwork
   4. "FRESHERS PLUG IN" panel
@@ -218,7 +218,7 @@ The success screen background is ember with maroon blobs in the corners; the sma
 | Asset | Source | Ship as | Budget |
 |---|---|---|---|
 | Title lockup | `the awakening - logo.png` (904×706) | `title.webp` ≤720px wide plus a PNG fallback; `width`/`height` set | ≤ 60 KB |
-| CLC logo | `brand/clc-logo.png` **used exactly as supplied** (it already includes the church name; never add a text label beside it). Trimmed of empty margin only. | `clc-logo.webp` (264px wide) plus a PNG fallback; shown 80px wide, top-left | ≤ 15 KB |
+| CLC logo | `brand/clc-logo.png` **used exactly as supplied** (it already includes the church name; never add a text label beside it). Trimmed of empty margin only. | `clc-logo.webp` (264px wide) plus a PNG fallback; shown 56px wide, top-left; its text must not overlap the starburst | ≤ 15 KB |
 | Starburst and blobs | Inline SVG / CSS (no image) | — | 0 KB |
 | Open Graph / WhatsApp preview | Flyer, cropped 1200×630 | `og.jpg` | ≤ 150 KB |
 
