@@ -128,3 +128,8 @@
   - Close time default: **2026-10-25T12:00:00+01:00** (builder decision).
 - **Checks:** see the commit; e2e 6/6, and 0 e2e rows left in TEST.
 - **Next:** P04 + P08 + P03 PRE-LAUNCH, then M5 launch.
+
+## 2026-10-08 · Pre-launch audits: P04 + P08 + P03 PRE-LAUNCH
+- Reports: `docs/audits/P04_2026-10-08.md`, `P08_2026-10-08.md`, `P03_2026-10-08_PRE-LAUNCH.md`.
+- **Critical (found by probing production after pushing main):** `/api/register` crashes on Vercel with `ERR_MODULE_NOT_FOUND`, because `shared/` uses extensionless ESM imports. No users affected (production shows "opens soon"). Fix pending approval.
+- **Others:** no rate limit (High); sock-puppet raffle entries (Medium, church draw rule); no security headers; hosted Supabase grants to verify; @vercel/node dev noise; SEO: Event JSON-LD, sitemap, privacy OG; support footer; deployed smoke script.
