@@ -162,3 +162,9 @@
 - **Dates:** now **Sat Oct 31, 4PM and Sun Nov 1, 9AM** (was Oct 24–25). Updated `shared/event.ts` (badges, ticket, email, JSON-LD), meta and OG text, `og.jpg`, the email template, ADMIN_GUIDE, PLAN_SUMMARY, PROJECT_PLAN, CLIENT_QUESTIONS and `.env.example`. Historical docs (IDEA_BRIEF, audits) keep the old dates as written at the time.
 - **Close time** must move to `2026-11-01T12:00:00+01:00` in Vercel Production (builder action).
 - **Logo:** 80 → 56px, so its text sits on cream, clear of the starburst.
+
+## 2026-10-08 · Registration QR code
+- `docs/launch/awakening-qr.png` (2520×2520, print quality). It encodes `https://the-awakening-rho.vercel.app/?src=qr`; the `?src=qr` tag puts "qr" in the Sheet's `source` column.
+- Error correction H; The Awakening logo on a cream plate in the centre (about 12% of the area); finder eyes in maroon and ember.
+- Decoded successfully (jsQR) at 2520, 1500, 1000, 600, 300, 200 and 140px, plus a blurred, rotated "phone photo" copy.
+- For a new event: regenerate with the `qrcode` npm package (level H) and the same layout.
