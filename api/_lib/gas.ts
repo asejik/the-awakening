@@ -1,7 +1,8 @@
 // Server-to-server calls to the church's Apps Script web app.
 // The secret travels in the JSON body because Apps Script doPost can't read headers.
 
-const TIMEOUT_MS = 20_000
+// Apps Script waits up to 25s for the Sheet lock; the function limit is 30s.
+const TIMEOUT_MS = 28_000
 
 export type RegisterPayload = {
   full_name: string
@@ -47,7 +48,12 @@ async function call<T>(action: string, payload: unknown): Promise<T> {
     throw new GasCallError(`GAS ${action} request failed: ${(err as Error).name}`)
   }
 
-  const text = await res.text()
+  let text: string
+  try {
+    text = await res.text()
+  } catch (err) {
+    throw new GasCallError(`GAS ${action} response failed: ${(err as Error).name}`)
+  }
   let body: T | GasError
   try {
     body = JSON.parse(text)
@@ -66,6 +72,8 @@ export function gasRegister(payload: RegisterPayload) {
   return call<RegisterResult>('register', payload)
 }
 
-export function gasSetEmailStatus(id: string, emailStatus: 'SENT' | 'FAILED') {
+export type EmailStatus = 'SENT' | 'FAILED' | 'LOGGED'
+
+export function gasSetEmailStatus(id: string, emailStatus: EmailStatus) {
   return call<{ status: 'ok' }>('setEmailStatus', { id, email_status: emailStatus })
 }

@@ -31,3 +31,21 @@
 - **Known issues:**
   - Spike endpoints exist on prod but return 503 (no prod env vars)
   - `spike.html` must be deleted in M2
+
+## 2026-10-08 · M1 first live run: two bugs found and fixed (BUG FIX)
+- **First run** (TEST Sheet, log mode):
+  - A single registration took 2.7s.
+  - 50 at once: 13 created, 32 busy, 5 timeouts.
+  - Same-phone race: **two rows**.
+- **Root causes:**
+  1. Sheets stored phone `09151234567` as the number `9151234567` (confirmed in the Sheet), so phone duplicates never matched. A code like `2E45` would have become a number too.
+  2. Each registration holds the lock for about 1.1s, so the Sheet handles about one per second, and the 10s lock wait rejected bursts.
+- **Fixes:**
+  - `phone` and `code` written with a leading `'` (forced text); phones compared by digits, so old rows still match
+  - Read only columns id…email under the lock
+  - Lock wait 25s, fetch timeout 28s
+  - Log mode records `LOGGED` instead of `SENT`
+  - Load test gains `--retry-busy` (the page will retry busy twice) and `--p95`
+- **Tests:** 37 passing. The new Apps Script tests run Code.gs against a fake Sheet that coerces values like Google Sheets does. 3 of them fail on the old code, which reproduces the bug.
+- **Also:** `vercel dev` replaced locally by `scripts/dev-server.mjs`. It was 2–5s per request and didn't load `.env.local`.
+- **Next:** builder re-pastes `Code.gs` and redeploys as a new version (same URL); then re-run the M1 live checks.

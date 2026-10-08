@@ -36,7 +36,7 @@ beforeEach(() => {
   process.env.GAS_SECRET = 's'
   process.env.EMAIL_MODE = 'log'
   gasSetEmailStatus.mockResolvedValue({ status: 'ok' })
-  sendMail.mockResolvedValue(undefined)
+  sendMail.mockResolvedValue('sent')
 })
 
 describe('POST /api/register', () => {
@@ -66,6 +66,13 @@ describe('POST /api/register', () => {
     expect(res.body).toEqual({ status: 'created', code: 'K7QX', full_name: 'Tolulope Adeyemi' })
     expect(sendMail.mock.calls[0][0].to).toBe('tolu@example.com')
     expect(gasSetEmailStatus).toHaveBeenCalledWith('r1', 'SENT')
+  })
+
+  it('records LOGGED in log mode, never SENT', async () => {
+    gasRegister.mockResolvedValue({ status: 'created', id: 'r1', code: 'K7QX' })
+    sendMail.mockResolvedValue('logged')
+    await call(valid)
+    expect(gasSetEmailStatus).toHaveBeenCalledWith('r1', 'LOGGED')
   })
 
   it('still returns the code when email fails, and records FAILED', async () => {

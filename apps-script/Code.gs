@@ -59,7 +59,7 @@ function setupSheet() {
 
 // No 0/O/1/I/L: codes are read aloud at the draw and typed on phones.
 var CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
-var LOCK_WAIT_MS = 10000;
+var LOCK_WAIT_MS = 25000; // Vercel fetch timeout is 28s, function limit 30s
 var RESEND_THROTTLE_SECONDS = 600;
 
 function doPost(e) {
@@ -91,12 +91,14 @@ function register_(p) {
     var headers = TABS.Registrations;
     var col = indexOf_(headers);
     var lastRow = sheet.getLastRow();
-    var rows = lastRow > 1 ? sheet.getRange(2, 1, lastRow - 1, headers.length).getValues() : [];
+    // Read only up to the email column (id … email); the lock is held while this runs.
+    var rows = lastRow > 1 ? sheet.getRange(2, 1, lastRow - 1, col.email + 1).getValues() : [];
 
+    var phoneKey = phoneKey_(p.phone);
     var codes = {};
     for (var i = 0; i < rows.length; i++) {
       var r = rows[i];
-      if (String(r[col.phone]) === p.phone || String(r[col.email]).toLowerCase() === p.email) {
+      if (phoneKey_(r[col.phone]) === phoneKey || String(r[col.email]).toLowerCase() === p.email) {
         var id = String(r[col.id]);
         var cache = CacheService.getScriptCache();
         var resend = !cache.get('resend:' + id);
@@ -114,10 +116,11 @@ function register_(p) {
 
     var now = new Date();
     var record = {
-      id: Utilities.getUuid(), created_at: now, code: code,
+      // Leading ' forces text: Sheets would turn 0801… into 801… and a code like 2E45 into a number.
+      id: Utilities.getUuid(), created_at: now, code: "'" + code,
       full_name: p.full_name, gender: p.gender, institution: p.institution,
       institution_other: p.institution_other, department: p.department,
-      phone: p.phone, email: p.email, needs_transport: p.needs_transport,
+      phone: "'" + p.phone, email: p.email, needs_transport: p.needs_transport,
       area: p.area, address: p.address, consent_at: now,
       followup_optin: p.followup_optin, age_confirmed: p.age_confirmed,
       email_status: 'PENDING', email_attempts: 0, emailed_at: '', source: p.source,
@@ -131,7 +134,7 @@ function register_(p) {
 }
 
 function setEmailStatus_(p) {
-  if (p.email_status !== 'SENT' && p.email_status !== 'FAILED') return { status: 'error', message: 'bad status' };
+  if (['SENT', 'FAILED', 'LOGGED'].indexOf(p.email_status) === -1) return { status: 'error', message: 'bad status' };
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Registrations');
   var col = indexOf_(TABS.Registrations);
   var cell = sheet.getRange(2, col.id + 1, Math.max(sheet.getLastRow() - 1, 1), 1)
@@ -144,6 +147,11 @@ function setEmailStatus_(p) {
   sheet.getRange(row, col.email_attempts + 1).setValue(attempts + 1);
   if (p.email_status === 'SENT') sheet.getRange(row, col.emailed_at + 1).setValue(new Date());
   return { status: 'ok' };
+}
+
+/** Compares phones by digits without the leading 0, so rows stored as numbers still match. */
+function phoneKey_(v) {
+  return String(v).replace(/\D/g, '').replace(/^0/, '');
 }
 
 function randomCode_() {

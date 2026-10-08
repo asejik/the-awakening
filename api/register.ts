@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { waitUntil } from '@vercel/functions'
 import { normalizeNigerianPhone } from '../shared/phone.js'
 import { confirmationEmail } from './_lib/email.js'
-import { gasRegister, gasSetEmailStatus, type RegisterPayload } from './_lib/gas.js'
+import { gasRegister, gasSetEmailStatus, type EmailStatus, type RegisterPayload } from './_lib/gas.js'
 import { sendMail } from './_lib/mailer.js'
 
 // M1 spike: minimal validation. M2 replaces it with the shared zod schema.
@@ -51,15 +51,16 @@ function validate(body: Record<string, unknown>): { payload?: RegisterPayload; e
 
 async function emailAndRecord(id: string, to: string, fullName: string, code: string, resend: boolean) {
   const started = Date.now()
-  let outcome: 'SENT' | 'FAILED' = 'SENT'
+  let outcome: EmailStatus
   try {
-    await sendMail(confirmationEmail(to, fullName, code, resend))
+    // Log mode records LOGGED so test rows never claim an email went out.
+    outcome = (await sendMail(confirmationEmail(to, fullName, code, resend))) === 'sent' ? 'SENT' : 'LOGGED'
   } catch (err) {
     outcome = 'FAILED'
     console.error(JSON.stringify({ evt: 'email.failed', id, error: (err as Error).message }))
   }
-  // A failed resend must not downgrade a row that was already SENT.
-  if (resend && outcome === 'FAILED') return
+  // A resend only ever upgrades the row; a failed or logged resend leaves it as it was.
+  if (resend && outcome !== 'SENT') return
   try {
     await gasSetEmailStatus(id, outcome)
   } catch (err) {

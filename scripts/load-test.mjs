@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // M1 load test for /api/register. Uses FAKE addresses, so the target MUST run with EMAIL_MODE=log.
-// Usage: node scripts/load-test.mjs --url http://localhost:3000/api/register --n 50 --email-mode-is-log
+// Usage: node scripts/load-test.mjs --url http://localhost:3000/api/register --n 50 --email-mode-is-log [--retry-busy] [--p95 8000]
+//   --retry-busy  retry 503 busy up to 2 times with 1-3s jitter, like the registration page does
+//   --p95 <ms>    latency target (default 8000; 0 skips the check)
 // Rows are tagged source=loadtest and full_name "LOADTEST …" so they're easy to delete from the TEST Sheet.
 
 const args = Object.fromEntries(
@@ -8,6 +10,8 @@ const args = Object.fromEntries(
 )
 const url = args.url
 const n = Number(args.n ?? 50)
+const retryBusy = args['retry-busy'] === true
+const p95Limit = Number(args.p95 ?? 8000)
 const bypass = process.env.VERCEL_BYPASS // optional: Vercel "Protection Bypass for Automation" secret
 
 if (!url || args['email-mode-is-log'] !== true) {
@@ -33,6 +37,17 @@ const person = (i, phone = '090' + rand(8)) => ({
 
 async function post(body) {
   const t = Date.now()
+  let res = await postOnce(body)
+  for (let attempt = 0; retryBusy && res.status === 'busy' && attempt < 2; attempt++) {
+    await new Promise((r) => setTimeout(r, 1000 + Math.random() * 2000))
+    res = await postOnce(body)
+    res.retried = attempt + 1
+  }
+  return { ...res, ms: Date.now() - t }
+}
+
+async function postOnce(body) {
+  const t = Date.now()
   try {
     const headers = { 'Content-Type': 'application/json' }
     if (bypass) headers['x-vercel-protection-bypass'] = bypass
@@ -54,7 +69,7 @@ try {
   process.exit(1)
 }
 
-console.log(`Run ${run}: ${n} parallel registrations → ${url}`)
+console.log(`Run ${run}: ${n} parallel registrations → ${url}${retryBusy ? ' (retrying busy like the page)' : ''}`)
 const results = await Promise.all(Array.from({ length: n }, (_, i) => post(person(i))))
 const ms = results.map((r) => r.ms).sort((a, b) => a - b)
 const created = results.filter((r) => r.status === 'created')
@@ -62,7 +77,7 @@ const codes = new Set(created.map((r) => r.code))
 const byStatus = results.reduce((m, r) => ((m[`${r.http} ${r.status}`] = (m[`${r.http} ${r.status}`] ?? 0) + 1), m), {})
 
 console.log('Outcomes:', byStatus)
-console.log(`Created: ${created.length}/${n} · unique codes: ${codes.size}`)
+console.log(`Created: ${created.length}/${n} · unique codes: ${codes.size} · needed a retry: ${results.filter((r) => r.retried).length}`)
 console.log(`Latency ms: p50 ${pct(ms, 50)} · p95 ${pct(ms, 95)} · max ${ms.at(-1)}`)
 
 console.log('\nRace: same phone submitted twice at the same moment…')
@@ -70,7 +85,7 @@ const phone = '091' + rand(8)
 const race = await Promise.all([post(person('raceA', phone)), post(person('raceB', phone))])
 console.log(race.map((r) => `${r.http} ${r.status}`).join(' | '), '(expect one created, one duplicate)')
 
-const ok = created.length === n && codes.size === n && pct(ms, 95) < 8000 &&
+const ok = created.length === n && codes.size === n && (p95Limit === 0 || pct(ms, 95) < p95Limit) &&
   race.filter((r) => r.status === 'created').length === 1 && race.filter((r) => r.status === 'duplicate').length === 1
 console.log(ok ? '\nPASS' : '\nFAIL')
 process.exit(ok ? 0 : 1)

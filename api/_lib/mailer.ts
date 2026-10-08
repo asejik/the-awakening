@@ -17,10 +17,10 @@ function getTransporter(): Transporter {
 }
 
 /** Sends via the church Gmail. With EMAIL_MODE=log nothing is sent (dev, preview, load tests). */
-export async function sendMail(mail: Mail): Promise<void> {
+export async function sendMail(mail: Mail): Promise<'sent' | 'logged'> {
   if (process.env.EMAIL_MODE !== 'smtp') {
     console.log(JSON.stringify({ evt: 'email.log_mode', subject: mail.subject }))
-    return
+    return 'logged'
   }
   await getTransporter().sendMail({
     from: { name: 'Citizens of Light Church', address: process.env.SMTP_USER ?? '' },
@@ -29,4 +29,5 @@ export async function sendMail(mail: Mail): Promise<void> {
     text: mail.text,
     html: mail.html,
   })
+  return 'sent'
 }
