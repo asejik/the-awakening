@@ -22,7 +22,7 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
 ## Commands
 
 - `npm run dev`: frontend only (Vite). It does **not** run `/api` functions.
-- `npm run dev:full`: `vercel dev`, frontend plus `/api` functions. Needs the Vercel CLI (`npm i -g vercel`) and a linked project.
+- `npm run dev:full`: frontend plus `/api` functions via `scripts/dev-server.mjs` (Vite middleware, Vercel-style handler shim), with env from `.env.local`. Use this, not `vercel dev`, which was slow and did not load `.env.local` here.
 - `npm run build`: type check (`tsc -b`) plus the Vite build
 - `npm run typecheck`: `tsc -b` across three projects: `tsconfig.app.json` (src), `tsconfig.node.json` (configs) and `tsconfig.api.json` (api)
 - `npm run lint`: oxlint, config in `.oxlintrc.json`
