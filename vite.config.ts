@@ -24,8 +24,8 @@ function eventJsonLd(url: string): string {
   const data = {
     '@context': 'https://schema.org',
     '@type': 'Event',
-    name: `${EVENT.name}: ${EVENT.tagline}`,
-    description: `${EVENT.tagline} by ${EVENT.host}. ${EVENT.days.map((d) => `${d.label}: ${d.date}, ${d.time}`).join('. ')}. Featuring ${EVENT.programme.join(', ')}.`,
+    name: EVENT.name,
+    description: `${EVENT.name} by ${EVENT.host}. ${EVENT.days.map((d) => `${d.label}: ${d.date}, ${d.time}`).join('. ')}. Featuring ${EVENT.programme.join(', ')}.`,
     startDate: EVENT.schedule.start,
     endDate: EVENT.schedule.endDate,
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',

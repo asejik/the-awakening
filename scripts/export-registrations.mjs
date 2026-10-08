@@ -11,7 +11,7 @@ if (!url || !key || !event) {
 }
 
 const COLUMNS = [
-  'id', 'event', 'created_at', 'code', 'full_name', 'gender', 'institution', 'institution_other', 'department',
+  'id', 'event', 'created_at', 'code', 'full_name', 'gender', 'institution', 'institution_other', 'department', 'level',
   'phone', 'email', 'needs_transport', 'area', 'address', 'consent_at', 'followup_optin', 'age_confirmed', 'source',
   'email_status', 'email_attempts', 'emailed_at', 'sheet_synced_at',
 ]

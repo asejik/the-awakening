@@ -24,6 +24,7 @@ For the Citizens of Light Church team. No technical knowledge needed, except whe
 - **The Sheet is a copy.** Editing or deleting a row in the Sheet does **not** change the real database. To remove someone, see section 5.
 - **Useful columns:**
   - `code`: the raffle code
+  - `level`: 100–500 Level (the **last** column; rows from before it was added are blank)
   - `needs_transport`, `area`, `address`: for bus planning
   - `followup_optin`: **Yes** means the person agreed to follow-up calls and WhatsApp messages. **Only contact people marked Yes for follow-up.**
   - `source`: where they came from (if the link had a tag)

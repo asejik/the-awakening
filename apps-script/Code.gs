@@ -21,6 +21,8 @@ var TABS = {
     'id', 'created_at', 'code', 'full_name', 'gender', 'institution', 'institution_other',
     'department', 'phone', 'email', 'needs_transport', 'area', 'address', 'consent_at',
     'followup_optin', 'age_confirmed', 'source', 'synced_at',
+    // Added later columns go at the END so existing rows never shift (setupSheet appends them).
+    'level',
   ],
   Winners: ['drawn_at', 'code', 'registration_id', 'status', 'round'],
   Log: ['at', 'level', 'action', 'message'],
@@ -46,7 +48,9 @@ function setupSheet() {
 
     if (sheet.getLastRow() > 0) {
       var existing = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-      if (existing.join('|') !== headers.join('|')) {
+      // New columns appended to the end of TABS are fine: the old headers are a prefix.
+      var isPrefix = existing.length <= headers.length && existing.every(function (h, i) { return h === headers[i]; });
+      if (!isPrefix) {
         if (hasData) {
           throw new Error('Tab "' + name + '" has data under different headers. Clear it by hand; nothing was changed.');
         }

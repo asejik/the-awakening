@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { INSTITUTION_OTHER, INSTITUTIONS } from './event.js'
+import { INSTITUTION_OTHER, INSTITUTIONS, LEVELS } from './event.js'
 import { normalizeNigerianPhone } from './phone.js'
 
 // One schema for the page (react-hook-form) and the server (/api/register).
@@ -14,6 +14,7 @@ export const registrationSchema = z
     institution: z.string().refine((v) => institutionChoices.includes(v), 'Choose your institution'),
     institution_other: z.string().trim().max(80, 'Keep it under 80 characters').default(''),
     department: z.string().trim().min(2, 'Enter your department').max(80, 'Keep it under 80 characters'),
+    level: z.enum(LEVELS, { error: 'Choose your level' }),
     phone: z
       .string()
       .trim()
@@ -58,6 +59,7 @@ export function toPayload(r: Registration) {
     institution: r.institution,
     institution_other: r.institution === INSTITUTION_OTHER ? r.institution_other : '',
     department: r.department,
+    level: r.level,
     phone: normalizeNigerianPhone(r.phone)!,
     email: r.email.toLowerCase(),
     needs_transport: transport,

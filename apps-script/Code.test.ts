@@ -71,7 +71,8 @@ function load(opts: {
 const reg = (id: string, extra: Record<string, string> = {}) => ({
   id, created_at: '2026-10-09 10:00:00', code: '2E45', full_name: 'Tolu', gender: 'Female', institution: 'U',
   institution_other: '', department: 'Law', phone: '08012345678', email: 't@x.co', needs_transport: 'No',
-  area: '', address: '', consent_at: '2026-10-09 10:00:00', followup_optin: 'Yes', age_confirmed: 'Yes', source: '', ...extra,
+  area: '', address: '', consent_at: '2026-10-09 10:00:00', followup_optin: 'Yes', age_confirmed: 'Yes', source: '',
+  level: '100 Level', ...extra,
 })
 
 describe('syncFromSupabase (Apps Script)', () => {
@@ -85,6 +86,8 @@ describe('syncFromSupabase (Apps Script)', () => {
     expect(row[gas.headers.indexOf('phone')]).toBe('08012345678')
     expect(row[gas.headers.indexOf('code')]).toBe('2E45')
     expect(row[gas.headers.indexOf('synced_at')]).toBeInstanceOf(Date)
+    expect(row[gas.headers.indexOf('level')]).toBe('100 Level')
+    expect(gas.headers.at(-1)).toBe('level') // appended last so existing Sheet rows don't shift
   })
 
   it('marks every fetched row synced after writing', () => {

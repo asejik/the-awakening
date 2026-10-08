@@ -3,7 +3,7 @@ import { fieldErrors, registrationSchema, toPayload } from './registration.js'
 
 const valid = {
   full_name: '  Tolulope Adeyemi ', gender: 'Female', institution: 'University of Ilorin', institution_other: '',
-  department: 'Law', phone: '+234 801 234 5678', email: 'Tolu@Example.com ', needs_transport: 'No',
+  department: 'Law', level: '100 Level', phone: '+234 801 234 5678', email: 'Tolu@Example.com ', needs_transport: 'No',
   area: '', address: '', consent: true, age_confirmed: true, followup_optin: false, source: 'qr-hostel',
 }
 
@@ -17,7 +17,7 @@ describe('registrationSchema', () => {
     const r = registrationSchema.parse(valid)
     expect(toPayload(r)).toEqual({
       full_name: 'Tolulope Adeyemi', gender: 'Female', institution: 'University of Ilorin', institution_other: '',
-      department: 'Law', phone: '08012345678', email: 'tolu@example.com', needs_transport: false, area: '',
+      department: 'Law', level: '100 Level', phone: '08012345678', email: 'tolu@example.com', needs_transport: false, area: '',
       address: '', followup_optin: false, age_confirmed: true, source: 'qr-hostel',
     })
   })
@@ -29,6 +29,11 @@ describe('registrationSchema', () => {
       email: 'Enter a valid email, e.g. name@gmail.com',
       gender: 'Choose one',
     })
+  })
+
+  it('requires a school level from the list', () => {
+    expect(errorsFor({ ...valid, level: '' })).toEqual({ level: 'Choose your level' })
+    expect(errorsFor({ ...valid, level: '600 Level' })).toEqual({ level: 'Choose your level' })
   })
 
   it('requires consent and the age confirmation', () => {

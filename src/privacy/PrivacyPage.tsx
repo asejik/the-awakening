@@ -44,7 +44,7 @@ export function PrivacyPage() {
 
       <Section title="What we collect">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Your full name, gender, institution and department</li>
+          <li>Your full name, gender, institution, department and level (100–500)</li>
           <li>Your phone (WhatsApp) number and email address</li>
           <li>Whether you need a pickup bus and, only if you do, your area and address</li>
           <li>Your answers to the consent and age questions, and the time you registered</li>

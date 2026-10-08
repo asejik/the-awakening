@@ -69,8 +69,8 @@ All sizes in px, mobile-first. Desktop is the same: it's a single column.
 | Token | Size / line-height | Font | Use |
 |---|---|---|---|
 | `--text-code` | 76 / 1 | Lilita, letter-spacing .08em | Raffle code on the ticket |
-| `--text-h1` | 32 / 1.0 | Lilita | Section heading ("Plug in. Grab your raffle ticket.") |
-| `--text-h2` | 26 / 0.95 | Lilita | "FRESHERS PLUG IN" panel, success heading |
+| `--text-h1` | 32 / 1.0 | Lilita | Section heading ("Register now") |
+| `--text-h2` | 26 / 0.95 | Lilita | Success heading, venue panel church name |
 | `--text-button` | 22 / 1 | Lilita, letter-spacing .02em | Buttons |
 | `--text-lead` | 18 / 1.3 | Barlow 500 | Intro paragraph, helper copy |
 | `--text-body` | 19 / 1.3 | Barlow 500 | Input values (≥16px avoids iOS zoom) |
@@ -98,8 +98,8 @@ All sizes in px, mobile-first. Desktop is the same: it's a single column.
   1. CLC logo (as supplied, 56px wide, clear of the starburst)
   2. Day badges (left and right)
   3. Title artwork
-  4. "FRESHERS PLUG IN" panel
-  5. Venue panel
+  4. Venue panel: "CITIZENS OF LIGHT CHURCH" (Lilita) plus the full address. The "Freshers Plug In" panel was removed at the Pastor's request (2026-10-08).
+  5. "Featuring" strip (programme from shared/event.ts)
   6. "Register free" button (scrolls to the form)
 
 ---
@@ -305,7 +305,7 @@ Spacing uses Tailwind's default 4px scale (`p-4` = 16px, and so on). Don't add a
   - Form: the "Get my ticket" button is the one primary action
   - Success: the ticket
 - **Don't drift into generic.** No Inter or system-font UI, no purple or blue, no gradients at all, no glass, no emoji icons, no three-icon-card rows.
-- **Copy voice:** short, warm, campus-casual ("Plug in", "Grab your raffle ticket", "You're plugged in!"). Error messages are plain and specific; never "Invalid input".
+- **Copy voice:** short, warm, campus-casual ("Register now", "You're plugged in!"; no "Freshers Plug In" or raffle-led headlines, per the Pastor). Error messages are plain and specific; never "Invalid input".
 - **Touch:** every tappable target is ≥44×44px; nothing important is hover-only; every button has a pressed state.
 - **Performance:**
   - No particles or parallax; the only continuous animation is the badge rotation

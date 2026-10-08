@@ -7,6 +7,7 @@ async function fillRequired(page: Page, phone: string, email: string) {
   await page.getByText('Female', { exact: true }).click()
   await page.getByLabel('Institution', { exact: true }).selectOption('University of Ilorin')
   await page.getByLabel('Department').fill('Computer Science')
+  await page.getByLabel('Level', { exact: true }).selectOption('100 Level')
   await page.getByLabel('Phone (WhatsApp)').fill(phone)
   await page.getByLabel('Email', { exact: true }).fill(email)
   await page.getByText('No', { exact: true }).click()

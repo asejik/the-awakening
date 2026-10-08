@@ -11,6 +11,7 @@ export type RegisterPayload = {
   institution: string
   institution_other: string
   department: string
+  level: string
   phone: string
   email: string
   needs_transport: boolean

@@ -48,12 +48,12 @@ export default function App() {
           IT'S FREE
         </span>
         <h2 id="register-heading" className="font-display text-h1 text-ink">
-          Plug in. Grab your raffle ticket.
+          Register now
         </h2>
         <p id="form-intro" className="mb-5 mt-1.5 font-text text-lead text-muted">
           {status.state === 'not_open' || status.state === 'closed'
             ? "Registration happens right here on this page."
-            : "Takes about a minute. You'll get a raffle code for the prize draw at the event."}
+            : 'It takes about a minute.'}
         </p>
         {!hydrated || status.state === 'loading' ? (
           <FormPlaceholder />

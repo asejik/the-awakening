@@ -22,8 +22,8 @@ export function ClosedPanel({ state, opensAt }: Props) {
         {state === 'closed'
           ? `Thank you for the love! See you at ${EVENT.name}.`
           : opensAt
-            ? `Come back on ${formatOpening(opensAt)} to grab your raffle ticket.`
-            : 'Check back shortly to grab your raffle ticket.'}
+            ? `Come back on ${formatOpening(opensAt)} to register.`
+            : 'Check back shortly to register.'}
       </p>
       <p className="mt-3 font-text text-detail font-bold uppercase italic">{EVENT.venue}</p>
     </div>

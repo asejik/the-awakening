@@ -32,7 +32,7 @@ async function call(body: unknown, method = 'POST') {
 
 const valid = {
   full_name: 'Tolulope Adeyemi', gender: 'Female', institution: 'University of Ilorin',
-  department: 'Law', phone: '+234 801 234 5678', email: 'Tolu@Example.com',
+  department: 'Law', level: '200 Level', phone: '+234 801 234 5678', email: 'Tolu@Example.com',
   needs_transport: 'No', consent: true, age_confirmed: true, website: '', elapsed_ms: 45_000,
 }
 

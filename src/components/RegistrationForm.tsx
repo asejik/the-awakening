@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { CircleAlert, ShieldCheck, WifiOff } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
-import { COPY, INSTITUTION_OTHER, INSTITUTIONS } from '../../shared/event'
+import { COPY, INSTITUTION_OTHER, INSTITUTIONS, LEVELS } from '../../shared/event'
 import { clearDraft, loadDraft, saveDraft } from '../lib/draft'
 import { registrationSchema, type Registration, type RegistrationInput } from '../../shared/registration'
 import { sourceTag, submitRegistration, type SubmitResult } from '../lib/submit'
@@ -40,7 +40,7 @@ export function RegistrationForm({ onDone, onClosed }: { onDone: (result: Done) 
     mode: 'onTouched',
     shouldFocusError: true,
     defaultValues: {
-      full_name: '', institution: '', institution_other: '', department: '', phone: '', email: '',
+      full_name: '', institution: '', institution_other: '', department: '', level: '' as RegistrationInput['level'], phone: '', email: '',
       area: '', address: '', followup_optin: false, ...loadDraft(), source: sourceTag(),
     },
   })
@@ -102,6 +102,14 @@ export function RegistrationForm({ onDone, onClosed }: { onDone: (result: Done) 
       )}
 
       <TextField label="Department" registration={register('department')} error={errors.department?.message} />
+
+      <SelectField
+        label="Level"
+        placeholder="Choose your level"
+        options={LEVELS}
+        registration={register('level')}
+        error={errors.level?.message}
+      />
 
       <TextField
         label="Phone (WhatsApp)"

@@ -13,7 +13,7 @@ async function rpc<T = Record<string, unknown>>(query: string, params: unknown[]
 
 const person = (phone: string, email: string, extra: object = {}) => ({
   full_name: 'Tolulope Adeyemi', gender: 'Female', institution: 'University of Ilorin', department: 'Law',
-  phone, email, needs_transport: false, followup_optin: true, age_confirmed: true, source: 'test', ...extra,
+  phone, email, needs_transport: false, followup_optin: true, age_confirmed: true, source: 'test', level: '300 Level', ...extra,
 })
 
 async function register(p: object, event = 'awakening-2026') {
@@ -35,6 +35,7 @@ beforeEach(async () => {
   await db.exec(sql('002_ops.sql'))
   await db.exec(sql('003_rate_limit.sql'))
   await db.exec(sql('004_harden_defaults.sql'))
+  await db.exec(sql('005_level.sql'))
 })
 
 describe('001_registrations', () => {
@@ -178,7 +179,31 @@ describe('001_registrations', () => {
     await db.exec('drop function public.rls_auto_enable()')
   })
 
+  it('005: stores and mirrors the school level; rejects unknown levels', async () => {
+    const r = await register(person('08012345678', 'tolu@example.com'))
+    const [row] = await rpc<{ level: string }>('select level from public.registrations where id = $1', [r.id])
+    expect(row.level).toBe('300 Level')
+    const [pending] = await rpc<{ level: string }>(`select level from public.sheet_pending('awakening-2026')`)
+    expect(pending.level).toBe('300 Level')
+    await expect(register(person('08098765432', 'x@example.com', { level: '600 Level' }))).rejects.toThrow(/check constraint/)
+    const [{ anon_exec }] = await rpc<{ anon_exec: boolean }>(
+      `select has_function_privilege('anon', 'public.sheet_pending(text, integer)', 'execute') as anon_exec`)
+    expect(anon_exec).toBe(false)
+  })
+
+  it('005: rows from before the migration (no level) still work', async () => {
+    const r = await register(person('08012345678', 'tolu@example.com', { level: undefined }))
+    expect(r.status).toBe('created')
+  })
+
+  it('005 rolls back cleanly', async () => {
+    await db.exec(sql('005_level.down.sql'))
+    expect(await rpc(`select 1 from information_schema.columns where table_name = 'registrations' and column_name = 'level'`)).toHaveLength(0)
+    expect((await register(person('08012345678', 'tolu@example.com'))).status).toBe('created')
+  })
+
   it('003 rolls back to 002', async () => {
+    await db.exec(sql('005_level.down.sql'))
     await db.exec(sql('003_rate_limit.down.sql'))
     expect(await rpc(`select 1 from pg_tables where tablename = 'rate_limits'`)).toHaveLength(0)
     const [{ s }] = await rpc<{ s: Record<string, number> }>(`select public.ops_summary('awakening-2026') as s`)
@@ -186,6 +211,7 @@ describe('001_registrations', () => {
   })
 
   it('002 rolls back to 001 behaviour', async () => {
+    await db.exec(sql('005_level.down.sql'))
     await db.exec(sql('003_rate_limit.down.sql'))
     await db.exec(sql('002_ops.down.sql'))
     const cols = await rpc(`select 1 from information_schema.columns where table_name = 'registrations' and column_name = 'retry_claimed_at'`)
@@ -196,6 +222,7 @@ describe('001_registrations', () => {
   })
 
   it('rolls back cleanly', async () => {
+    await db.exec(sql('005_level.down.sql'))
     await db.exec(sql('003_rate_limit.down.sql'))
     await db.exec(sql('002_ops.down.sql'))
     await db.exec(sql('001_registrations.down.sql'))

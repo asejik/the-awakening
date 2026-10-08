@@ -172,3 +172,12 @@
 ## 2026-10-08 · GO LIVE (sign-off 2) + preview cache fix
 - **Builder signed off: go live.**
 - **Facebook/WhatsApp kept the old preview image** (old dates) even after Scrape Again, because they cache images by URL. `og:image` (and the JSON-LD image) is now `og.jpg?v=<content hash>`, generated at build, so any future image change gets a new URL automatically.
+
+## 2026-10-08 · Pastor's feedback (updated flyer `brand/flyer-v2.webp`)
+- **Removed "Freshers Plug In"** everywhere: hero panel, titles and meta, OG image, email header, JSON-LD name. `EVENT.tagline` was deleted.
+- **Form heading** is now "Register now" / "It takes about a minute." The raffle-led lines were removed (closed panel too).
+- **Venue panel** follows the new flyer: "CITIZENS OF LIGHT CHURCH" plus the full address.
+- **Programme** from the new flyer: Ambience Jewel / Anointed Word / Impartation / Musical-Drama.
+- **New required field: Level** (100–500). Migration `005_level.sql` (ADDITIVE, live-safe default ''). `register_attendee` and `sheet_pending` updated. The Sheet gets `level` as its **last** column (`setupSheet` now accepts appended columns). Export, privacy notice and admin guide updated.
+- **Bug caught in review:** the Level select silently showed "100 Level" (an undefined default); it now defaults to blank, so the placeholder shows.
+- **Deploy order:** run 005 on TEST and LIVE **before** pushing (otherwise level would be silently dropped by the old function).

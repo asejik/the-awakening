@@ -4,7 +4,7 @@ import type { RegistrationInput } from '../../shared/registration'
 // Every access is wrapped: private mode, blocked storage or quota errors must never break the form.
 const KEY = 'awakening-draft-v1'
 const FIELDS = [
-  'full_name', 'gender', 'institution', 'institution_other', 'department', 'phone', 'email',
+  'full_name', 'gender', 'institution', 'institution_other', 'department', 'level', 'phone', 'email',
   'needs_transport', 'area', 'address', 'consent', 'age_confirmed', 'followup_optin',
 ] as const
 

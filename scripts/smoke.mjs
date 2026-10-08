@@ -34,7 +34,7 @@ await check('home page is pre-rendered with title, og:image and Event JSON-LD', 
   expect(html.includes('<title>'), 'no <title>')
   expect(/og:image" content="https:\/\//.test(html), 'og:image missing or not absolute')
   expect(html.includes('"@type":"Event"'), 'no Event JSON-LD')
-  expect(html.includes('Plug in. Grab'), 'content not in raw HTML')
+  expect(html.includes('Register now'), 'content not in raw HTML')
 })
 
 await check('security headers', async () => {

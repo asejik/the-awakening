@@ -38,7 +38,7 @@ export function Hero() {
             <source srcSet="/assets/title.webp" type="image/webp" />
             <img
               src="/assets/title.png"
-              alt={`${EVENT.name}: ${EVENT.tagline}`}
+              alt={`${EVENT.name}, ${EVENT.host}`}
               width={640}
               height={500}
               fetchPriority="high"
@@ -47,15 +47,12 @@ export function Hero() {
           </picture>
         </h1>
 
-        <p aria-hidden className="mx-auto -mt-2 w-max bg-maroon px-5 py-2 text-center font-display text-h2 uppercase text-cream">
-          Freshers
-          <br />
-          Plug in
-        </p>
-
-        <p className="mx-1.5 mt-5 bg-maroon px-4 py-3 text-center font-text text-detail font-bold uppercase italic text-cream shadow-panel">
-          <span className="block text-[20px]">{venueName}</span>
-          {venueRest.join(', ')}
+        {/* Venue panel, as on the Pastor's updated flyer: church name, then the full address. */}
+        <p className="mx-1.5 mt-3 bg-maroon px-4 py-3 text-center font-text text-detail font-bold uppercase text-cream shadow-panel">
+          <span className="block font-display text-[22px] font-normal leading-tight">{EVENT.host}</span>
+          <span className="mt-1 block italic">
+            {venueName}, {venueRest.join(', ')}
+          </span>
         </p>
 
         <div className="mt-6 text-center">

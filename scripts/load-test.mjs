@@ -28,6 +28,7 @@ const person = (i, phone = '090' + rand(8)) => ({
   gender: i % 2 ? 'Male' : 'Female',
   institution: 'University of Ilorin',
   department: 'Load Test',
+  level: '100 Level',
   phone,
   email: `loadtest-${run}-${i}@example.invalid`,
   needs_transport: 'No',

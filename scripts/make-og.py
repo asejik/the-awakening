@@ -11,6 +11,7 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 
 LILITA, BARLOW = sys.argv[1], sys.argv[2]
+PANEL_LINES = ['CITIZENS OF', 'LIGHT CHURCH']
 LINES_BIG = ['SAT. OCT. 31ST · 4PM', 'SUN. NOV. 1ST · 9AM']
 LINES_SMALL = ['FREEDOM DOME, ILESANMI BUS STOP,', 'TANKE, ILORIN']
 
@@ -35,10 +36,13 @@ lil = ImageFont.truetype(LILITA, 56 * S)
 big = ImageFont.truetype(BARLOW, 40 * S)
 small = ImageFont.truetype(BARLOW, 32 * S)
 x = 730 * S
-w1 = d.textbbox((0, 0), 'FRESHERS', font=lil)[2]
-d.rectangle((x - 18 * S, 70 * S, x + w1 + 18 * S, 206 * S), fill=maroon)
-d.text((x, 78 * S), 'FRESHERS', font=lil, fill=cream)
-d.text((x + (w1 - d.textbbox((0, 0), 'PLUG IN', font=lil)[2]) // 2, 140 * S), 'PLUG IN', font=lil, fill=cream)
+# Maroon panel (two centred lines), like the venue panel on the flyer.
+panel_font = lil.font_variant(size=46 * S)
+widths = [d.textbbox((0, 0), line, font=panel_font)[2] for line in PANEL_LINES]
+pw = max(widths)
+d.rectangle((x - 18 * S, 70 * S, x + pw + 18 * S, 70 * S + 128 * S), fill=maroon)
+for i, (line, w) in enumerate(zip(PANEL_LINES, widths)):
+    d.text((x + (pw - w) // 2, (80 + i * 56) * S), line, font=panel_font, fill=cream)
 y = 240 * S
 for line in LINES_BIG:
     d.text((x, y), line, font=big, fill=ink)

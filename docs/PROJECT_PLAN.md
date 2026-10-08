@@ -157,6 +157,7 @@ Ownership: the church. Rows are created only by the server-side `register_attend
 | `institution` | text | From the config list, or `Other` |
 | `institution_other` | text ≤ 80 | Only when `Other` |
 | `department` | text ≤ 80 | |
+| `level` | text, CHECK in ('', 100–500 Level) | Migration 005 (Pastor's request). Required on the form; '' only for rows from before it existed. Mirrored as the **last** Sheet column. |
 | `phone` | text | Normalised `0XXXXXXXXXX`; CHECK on format. **UNIQUE (event, phone).** |
 | `email` | text | Lowercased; CHECK `email = lower(email)`. **UNIQUE (event, email).** |
 | `needs_transport` | boolean | |

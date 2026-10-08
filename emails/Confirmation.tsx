@@ -70,13 +70,13 @@ export function Confirmation() {
             <Section className="rounded-t-[18px] bg-ember px-6 pb-6 pt-7 text-center">
               <Img
                 src={`${p('SITE_URL')}/assets/email-title.png`}
-                alt={`${EVENT.name}: ${EVENT.tagline}`}
+                alt={`${EVENT.name}, ${EVENT.host}`}
                 width="260"
                 height="203"
                 className="mx-auto block h-auto w-[260px] max-w-full"
               />
-              <Text className="m-0 mt-4 inline-block bg-maroon px-4 py-1.5 font-display text-[20px] uppercase leading-[24px] text-cream">
-                {EVENT.tagline}
+              <Text className="m-0 mt-4 inline-block bg-maroon px-4 py-1.5 font-display text-[18px] uppercase leading-[22px] text-cream">
+                {EVENT.host}
               </Text>
             </Section>
 

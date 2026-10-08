@@ -4,7 +4,6 @@
 
 export const EVENT = {
   name: 'The Awakening',
-  tagline: 'Freshers Plug In',
   host: 'Citizens of Light Church',
   /** Privacy requests (access, correction, deletion). Builder decision 2026-10-08. */
   contactEmail: 'clcchurchmedia@gmail.com',
@@ -15,7 +14,8 @@ export const EVENT = {
   ],
   /** Always shown in full (builder decision 2026-10-08). */
   venue: 'Freedom Dome, Ilesanmi Bus Stop, Tanke, Ilorin',
-  programme: ['Music', 'Freedom Studio Film', 'Word', 'Conscious Flow', 'Prayer'],
+  // From the Pastor's updated flyer (brand/flyer-v2.webp), 2026-10-08.
+  programme: ['Ambience Jewel', 'Anointed Word', 'Impartation', 'Musical-Drama'],
   /** For structured data (SEO). The end time isn't known, so the end is a date only. */
   schedule: { start: '2026-10-31T16:00:00+01:00', endDate: '2026-11-01' },
   place: { name: 'Freedom Dome', street: 'Ilesanmi Bus Stop, Tanke', locality: 'Ilorin', region: 'Kwara', country: 'NG' },
@@ -24,6 +24,9 @@ export const EVENT = {
 /** Builder decision 2026-10-08: UNILORIN freshers are the main target; everyone else picks Other. */
 export const INSTITUTIONS = ['University of Ilorin'] as const
 export const INSTITUTION_OTHER = 'Other'
+
+/** School level (Pastor's request, 2026-10-08). Must match the CHECK in migration 005. */
+export const LEVELS = ['100 Level', '200 Level', '300 Level', '400 Level', '500 Level'] as const
 
 export const COPY = {
   consent:
