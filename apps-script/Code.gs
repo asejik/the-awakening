@@ -1,28 +1,34 @@
 /**
- * The Awakening Registration: Apps Script bound to the event Google Sheet.
- * Paste into Extensions → Apps Script of BOTH the test and the prod Sheet.
+ * The Awakening Registration: Google Sheet mirror (Apps Script bound to the event Sheet).
+ * Paste into Extensions → Apps Script of the TEST or LIVE Sheet.
  *
- * setupSheet(): run once per Sheet. doPost: the web app called by Vercel
- * (register, setEmailStatus; draw and markWinner arrive in M6).
- * See docs/PROJECT_PLAN.md §4 and §6.
+ * Supabase is the system of record (docs/PROJECT_PLAN.md, Revision 2). This script only:
+ *   - copies new registrations into the Sheet every 5 minutes (and on "Awakening → Sync now")
+ *   - pings /api/email-retry so failed confirmation emails are re-sent
+ *
+ * Setup (once per Sheet):
+ *   1. Project Settings → Script Properties:
+ *        SUPABASE_URL, SUPABASE_SECRET_KEY, EVENT_SLUG
+ *        RETRY_URL, RETRY_SECRET   (optional; skipped when unset)
+ *   2. Run setupSheet, then installTrigger (approve the permission prompts).
  */
 
 var TABS = {
   Registrations: [
-    'id', 'created_at', 'code', 'full_name', 'gender', 'institution',
-    'institution_other', 'department', 'phone', 'email', 'needs_transport',
-    'area', 'address', 'consent_at', 'followup_optin', 'age_confirmed',
-    'email_status', 'email_attempts', 'emailed_at', 'source',
+    'id', 'created_at', 'code', 'full_name', 'gender', 'institution', 'institution_other',
+    'department', 'phone', 'email', 'needs_transport', 'area', 'address', 'consent_at',
+    'followup_optin', 'age_confirmed', 'source', 'synced_at',
   ],
   Winners: ['drawn_at', 'code', 'registration_id', 'status', 'round'],
   Log: ['at', 'level', 'action', 'message'],
 };
 
-// Columns stored as plain text so Sheets never turns "08012345678" into a number
-// or a code like "1E10" into a formula/number.
-var TEXT_COLUMNS = { Registrations: ['code', 'phone'] };
+// Written with a leading ' so Sheets keeps them as text: it drops the leading 0 of
+// "08012345678" and turns a code like "2E45" into a number (found in M1).
+var FORCE_TEXT = { phone: true, code: true };
+var SYNC_BATCH = 500;
 
-/** Run once per Sheet from the Apps Script editor (Run → setupSheet). Safe to re-run. */
+/** Creates or checks the tabs and headers. Safe to re-run. */
 function setupSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   ss.setSpreadsheetTimeZone('Africa/Lagos');
@@ -30,152 +36,135 @@ function setupSheet() {
   Object.keys(TABS).forEach(function (name) {
     var headers = TABS[name];
     var sheet = ss.getSheetByName(name) || ss.insertSheet(name);
+    var hasData = sheet.getLastRow() > 1;
 
     if (sheet.getLastRow() > 0) {
-      var existing = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
+      var existing = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
       if (existing.join('|') !== headers.join('|')) {
-        throw new Error('Tab "' + name + '" already has data with different headers. Fix it by hand; nothing was changed.');
+        if (hasData) {
+          throw new Error('Tab "' + name + '" has data under different headers. Clear it by hand; nothing was changed.');
+        }
+        sheet.clear();
       }
-    } else {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     }
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     sheet.setFrozenRows(1);
-
-    (TEXT_COLUMNS[name] || []).forEach(function (col) {
-      var idx = headers.indexOf(col) + 1;
-      sheet.getRange(1, idx, sheet.getMaxRows(), 1).setNumberFormat('@');
-    });
   });
 
-  // Remove the default empty "Sheet1" if present.
   var blank = ss.getSheetByName('Sheet1');
   if (blank && blank.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(blank);
 }
 
-/* ------------------------------------------------------------------ */
-/* Web app (M1). Deploy: Execute as Me, Who has access: Anyone.        */
-/* Script Properties: GAS_SECRET (same value as Vercel env GAS_SECRET) */
-/* ------------------------------------------------------------------ */
-
-// No 0/O/1/I/L: codes are read aloud at the draw and typed on phones.
-var CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
-var LOCK_WAIT_MS = 25000; // Vercel fetch timeout is 28s, function limit 30s
-var RESEND_THROTTLE_SECONDS = 600;
-
-function doPost(e) {
-  var out;
-  try {
-    var req = JSON.parse(e.postData.contents);
-    var expected = PropertiesService.getScriptProperties().getProperty('GAS_SECRET');
-    if (!expected || req.secret !== expected) {
-      out = { status: 'unauthorized' };
-    } else if (req.action === 'register') {
-      out = register_(req.payload);
-    } else if (req.action === 'setEmailStatus') {
-      out = setEmailStatus_(req.payload);
-    } else {
-      out = { status: 'error', message: 'unknown action' };
-    }
-  } catch (err) {
-    log_('error', 'doPost', String(err));
-    out = { status: 'error', message: 'server error' };
-  }
-  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+/** Runs syncFromSupabase every 5 minutes. Re-running replaces the old trigger. */
+function installTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'syncFromSupabase') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('syncFromSupabase').timeBased().everyMinutes(5).create();
 }
 
-function register_(p) {
-  var lock = LockService.getScriptLock();
-  if (!lock.tryLock(LOCK_WAIT_MS)) return { status: 'busy' };
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Registrations');
-    var headers = TABS.Registrations;
-    var col = indexOf_(headers);
-    var lastRow = sheet.getLastRow();
-    // Read only up to the email column (id … email); the lock is held while this runs.
-    var rows = lastRow > 1 ? sheet.getRange(2, 1, lastRow - 1, col.email + 1).getValues() : [];
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('Awakening').addItem('Sync now', 'syncNow').addToUi();
+}
 
-    var phoneKey = phoneKey_(p.phone);
-    var codes = {};
-    for (var i = 0; i < rows.length; i++) {
-      var r = rows[i];
-      if (phoneKey_(r[col.phone]) === phoneKey || String(r[col.email]).toLowerCase() === p.email) {
-        var id = String(r[col.id]);
-        var cache = CacheService.getScriptCache();
-        var resend = !cache.get('resend:' + id);
-        if (resend) cache.put('resend:' + id, '1', RESEND_THROTTLE_SECONDS);
-        return {
-          status: 'duplicate', id: id, code: String(r[col.code]),
-          email: String(r[col.email]), full_name: String(r[col.full_name]), resend: resend,
-        };
+function syncNow() {
+  var copied = syncFromSupabase();
+  SpreadsheetApp.getActiveSpreadsheet().toast(
+    copied === null ? 'A sync is already running. Try again in a minute.' : copied + ' new registration(s) copied.',
+    'Awakening');
+}
+
+/** Copies unsynced rows into the Registrations tab. Returns the number appended, or null if already running. */
+function syncFromSupabase() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(0)) return null;
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var rows = rpc_('sheet_pending', { p_event: props.getProperty('EVENT_SLUG'), p_limit: SYNC_BATCH });
+    var copied = 0;
+
+    if (rows.length) {
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Registrations');
+      var headers = TABS.Registrations;
+      var lastRow = sheet.getLastRow();
+      var present = {};
+      if (lastRow > 1) {
+        sheet.getRange(2, 1, lastRow - 1, 1).getValues().forEach(function (r) { present[String(r[0])] = true; });
       }
-      codes[String(r[col.code])] = true;
+
+      var now = new Date();
+      var toAppend = rows
+        .filter(function (r) { return !present[r.id]; })
+        .map(function (r) {
+          return headers.map(function (h) { return h === 'synced_at' ? now : cell_(h, r[h]); });
+        });
+
+      if (toAppend.length) {
+        sheet.getRange(lastRow + 1, 1, toAppend.length, headers.length).setValues(toAppend);
+        SpreadsheetApp.flush();
+        copied = toAppend.length;
+      }
+      // Mark every fetched row, including ones already present (e.g. after a crash mid-run).
+      rpc_('sheet_mark_synced', { p_ids: rows.map(function (r) { return r.id; }) });
     }
 
-    var code;
-    do { code = randomCode_(); } while (codes[code]);
-
-    var now = new Date();
-    var record = {
-      // Leading ' forces text: Sheets would turn 0801… into 801… and a code like 2E45 into a number.
-      id: Utilities.getUuid(), created_at: now, code: "'" + code,
-      full_name: p.full_name, gender: p.gender, institution: p.institution,
-      institution_other: p.institution_other, department: p.department,
-      phone: "'" + p.phone, email: p.email, needs_transport: p.needs_transport,
-      area: p.area, address: p.address, consent_at: now,
-      followup_optin: p.followup_optin, age_confirmed: p.age_confirmed,
-      email_status: 'PENDING', email_attempts: 0, emailed_at: '', source: p.source,
-    };
-    sheet.appendRow(headers.map(function (h) { return safe_(record[h]); }));
-    SpreadsheetApp.flush();
-    return { status: 'created', id: record.id, code: code };
+    pingRetry_();
+    return copied;
+  } catch (err) {
+    log_('error', 'syncFromSupabase', String(err));
+    throw err;
   } finally {
     lock.releaseLock();
   }
 }
 
-function setEmailStatus_(p) {
-  if (['SENT', 'FAILED', 'LOGGED'].indexOf(p.email_status) === -1) return { status: 'error', message: 'bad status' };
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Registrations');
-  var col = indexOf_(TABS.Registrations);
-  var cell = sheet.getRange(2, col.id + 1, Math.max(sheet.getLastRow() - 1, 1), 1)
-    .createTextFinder(String(p.id)).matchEntireCell(true).findNext();
-  if (!cell) return { status: 'error', message: 'id not found' };
-
-  var row = cell.getRow();
-  var attempts = Number(sheet.getRange(row, col.email_attempts + 1).getValue()) || 0;
-  sheet.getRange(row, col.email_status + 1).setValue(p.email_status);
-  sheet.getRange(row, col.email_attempts + 1).setValue(attempts + 1);
-  if (p.email_status === 'SENT') sheet.getRange(row, col.emailed_at + 1).setValue(new Date());
-  return { status: 'ok' };
+function cell_(header, value) {
+  if (value === null || value === undefined) return '';
+  var s = String(value);
+  if (FORCE_TEXT[header]) return "'" + s;
+  // Formula guard: never let user input be evaluated by Sheets.
+  return /^[=+\-@]/.test(s) ? "'" + s : s;
 }
 
-/** Compares phones by digits without the leading 0, so rows stored as numbers still match. */
-function phoneKey_(v) {
-  return String(v).replace(/\D/g, '').replace(/^0/, '');
+function rpc_(fn, body) {
+  var props = PropertiesService.getScriptProperties();
+  var key = props.getProperty('SUPABASE_SECRET_KEY');
+  var headers = { apikey: key };
+  // Legacy service_role keys are JWTs and also go in Authorization; new sb_secret_ keys don't.
+  if (key && key.indexOf('sb_') !== 0) headers.Authorization = 'Bearer ' + key;
+
+  var res = UrlFetchApp.fetch(props.getProperty('SUPABASE_URL') + '/rest/v1/rpc/' + fn, {
+    method: 'post',
+    contentType: 'application/json',
+    headers: headers,
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true,
+  });
+  var code = res.getResponseCode();
+  if (code >= 300) throw new Error(fn + ' failed: HTTP ' + code + ' ' + res.getContentText().slice(0, 200));
+  var text = res.getContentText();
+  return text ? JSON.parse(text) : null;
 }
 
-function randomCode_() {
-  var s = '';
-  for (var i = 0; i < 4; i++) s += CODE_ALPHABET.charAt(Math.floor(Math.random() * CODE_ALPHABET.length));
-  return s;
-}
-
-/** Stops user input from being evaluated as a formula. Dates and numbers pass through. */
-function safe_(v) {
-  if (v === null || v === undefined) return '';
-  if (typeof v !== 'string') return v;
-  return /^[=+\-@]/.test(v) ? "'" + v : v;
-}
-
-function indexOf_(headers) {
-  var m = {};
-  headers.forEach(function (h, i) { m[h] = i; });
-  return m;
+function pingRetry_() {
+  var props = PropertiesService.getScriptProperties();
+  var url = props.getProperty('RETRY_URL');
+  if (!url) return;
+  try {
+    var res = UrlFetchApp.fetch(url, {
+      method: 'post',
+      headers: { Authorization: 'Bearer ' + props.getProperty('RETRY_SECRET') },
+      muteHttpExceptions: true,
+    });
+    if (res.getResponseCode() >= 300) log_('warn', 'pingRetry', 'HTTP ' + res.getResponseCode());
+  } catch (err) {
+    log_('warn', 'pingRetry', String(err));
+  }
 }
 
 function log_(level, action, message) {
   try {
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log')
       .appendRow([new Date(), level, action, String(message).slice(0, 500)]);
-  } catch (ignored) { /* logging must never break a request */ }
+  } catch (ignored) { /* logging must never break a run */ }
 }

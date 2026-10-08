@@ -56,7 +56,7 @@ const server = createServer(async (req, res) => {
 })
 
 server.listen(port, () => {
-  const missing = ['GAS_URL', 'GAS_SECRET', 'EMAIL_MODE'].filter((k) => !process.env[k])
+  const missing = ['SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'EVENT_SLUG', 'EMAIL_MODE'].filter((k) => !process.env[k])
   console.log(`Ready: http://localhost:${port}  (EMAIL_MODE=${process.env.EMAIL_MODE ?? 'unset'})`)
   if (missing.length) console.warn(`Missing env: ${missing.join(', ')}. /api/register will return 503.`)
 })

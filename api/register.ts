@@ -1,13 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { waitUntil } from '@vercel/functions'
 import { normalizeNigerianPhone } from '../shared/phone.js'
-import { confirmationEmail } from './_lib/email.js'
-import { gasRegister, gasSetEmailStatus, type EmailStatus, type RegisterPayload } from './_lib/gas.js'
-import { sendMail } from './_lib/mailer.js'
+import { registerAttendee, type RegisterPayload } from './_lib/db.js'
+import { sendConfirmation } from './_lib/send-confirmation.js'
 
-// M1 spike: minimal validation. M2 replaces it with the shared zod schema.
+// M1: minimal validation. M2 replaces it with the shared zod schema.
 
-const REQUIRED_ENV = ['GAS_URL', 'GAS_SECRET', 'EMAIL_MODE'] as const
+const REQUIRED_ENV = ['SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'EVENT_SLUG', 'EMAIL_MODE'] as const
 
 function str(v: unknown, max: number): string {
   return typeof v === 'string' ? v.trim().slice(0, max) : ''
@@ -39,34 +38,14 @@ function validate(body: Record<string, unknown>): { payload?: RegisterPayload; e
       department: str(body.department, 80),
       phone: phone!,
       email,
-      needs_transport: needsTransport ? 'Yes' : 'No',
+      needs_transport: needsTransport,
       area: needsTransport ? str(body.area, 60) : '',
       address: needsTransport ? str(body.address, 200) : '',
-      followup_optin: body.followup_optin === true ? 'Yes' : 'No',
-      age_confirmed: 'Yes',
+      followup_optin: body.followup_optin === true,
+      age_confirmed: true,
       source: str(body.source, 40),
     },
   }
-}
-
-async function emailAndRecord(id: string, to: string, fullName: string, code: string, resend: boolean) {
-  const started = Date.now()
-  let outcome: EmailStatus
-  try {
-    // Log mode records LOGGED so test rows never claim an email went out.
-    outcome = (await sendMail(confirmationEmail(to, fullName, code, resend))) === 'sent' ? 'SENT' : 'LOGGED'
-  } catch (err) {
-    outcome = 'FAILED'
-    console.error(JSON.stringify({ evt: 'email.failed', id, error: (err as Error).message }))
-  }
-  // A resend only ever upgrades the row; a failed or logged resend leaves it as it was.
-  if (resend && outcome !== 'SENT') return
-  try {
-    await gasSetEmailStatus(id, outcome)
-  } catch (err) {
-    console.error(JSON.stringify({ evt: 'email.status_failed', id, error: (err as Error).message }))
-  }
-  console.log(JSON.stringify({ evt: 'email.done', id, outcome, resend, ms: Date.now() - started }))
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -81,24 +60,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const started = Date.now()
   try {
-    const result = await gasRegister(payload)
+    const result = await registerAttendee(process.env.EVENT_SLUG!, payload)
     const ms = Date.now() - started
-
-    if (result.status === 'busy') {
-      console.warn(JSON.stringify({ evt: 'register.busy', ms }))
-      return res.status(503).json({ status: 'busy' })
-    }
 
     if (result.status === 'created') {
       console.log(JSON.stringify({ evt: 'register.created', id: result.id, ms }))
-      waitUntil(emailAndRecord(result.id, payload.email, payload.full_name, result.code, false))
+      waitUntil(sendConfirmation(result.id, payload.email, payload.full_name, result.code, false))
       return res.status(201).json({ status: 'created', code: result.code, full_name: payload.full_name })
     }
 
     // Duplicate: never return the existing code to the browser; re-send it to the email on file.
     console.log(JSON.stringify({ evt: 'register.duplicate', id: result.id, resend: result.resend, ms }))
     if (result.resend) {
-      waitUntil(emailAndRecord(result.id, result.email, result.full_name, result.code, true))
+      waitUntil(sendConfirmation(result.id, result.email, result.full_name, result.code, true))
     }
     return res.status(200).json({ status: 'duplicate' })
   } catch (err) {

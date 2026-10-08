@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/register.ts": { "maxDuration": 30 }
+    "api/register.ts": { "maxDuration": 30 },
+    "api/email-retry.ts": { "maxDuration": 60 }
   }
 }

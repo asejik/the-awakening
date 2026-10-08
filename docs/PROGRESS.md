@@ -49,3 +49,16 @@
 - **Tests:** 37 passing. The new Apps Script tests run Code.gs against a fake Sheet that coerces values like Google Sheets does. 3 of them fail on the old code, which reproduces the bug.
 - **Also:** `vercel dev` replaced locally by `scripts/dev-server.mjs`. It was 2–5s per request and didn't load `.env.local`.
 - **Next:** builder re-pastes `Code.gs` and redeploys as a new version (same URL); then re-run the M1 live checks.
+
+## 2026-10-08 · M1 redo on Supabase (Revision 2): code complete, awaiting live run (FEATURE + DATABASE)
+- **Why:** after the phone fix, Apps Script + Sheet lock managed only one registration every 2.5–3s; 4 of 10 parallel submits timed out. The builder approved option B: Supabase as the record, the Sheet as a mirror.
+- **Changed:**
+  - `supabase/migrations/001_registrations.sql` (+ `.down.sql`): table with UNIQUE (event, phone/email/code), CHECKs, RLS on with no policies; functions `register_attendee`, `set_email_status`, `email_retry_batch`, `sheet_pending`, `sheet_mark_synced`, executable by service_role only
+  - `api/_lib/db.ts` (server-only supabase-js, 10s timeout)
+  - `api/register.ts` on `register_attendee`
+  - `api/email-retry.ts` (Bearer `RETRY_SECRET`)
+  - `api/_lib/send-confirmation.ts` (shared send-and-record)
+  - Apps Script rewritten as a pull mirror: `syncFromSupabase`, `installTrigger`, "Sync now" menu, retry ping
+  - Deleted `api/_lib/gas.ts` and its tests
+- **Tests:** 50 passing, including 11 that run the real migration in PGlite (in-process Postgres): duplicates, re-send throttle, code-collision retry, DB-level validation, retry selection, sheet sync, lockdown, rollback.
+- **Next:** builder runs the migration on TEST, fills `.env.local`, updates the TEST Sheet script. Then the M1 live checks: 50 parallel with p95 under 3s, race, inbox, wrong password, mirror.
