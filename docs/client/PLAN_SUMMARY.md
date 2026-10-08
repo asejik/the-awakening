@@ -11,7 +11,7 @@ When a student registers:
 1. They fill in a short form: name, gender, institution, department, phone (WhatsApp) number, email, and, if they need a pickup bus, their area and address.
 2. They instantly see their own **4-character raffle code** on screen and are asked to screenshot it.
 3. The same code is **emailed** to them from the church's Gmail address.
-4. Their details appear as a new row in the **church's Google Sheet**, ready for headcount, bus planning and follow-up.
+4. Their details are saved securely and appear as a new row in the **church's Google Sheet** within about 5 minutes, ready for headcount, bus planning and follow-up.
 
 **Each person can register only once.** If someone tries again with the same phone number or email, they're told they're already registered, and their code is re-sent to their email.
 
@@ -61,6 +61,7 @@ We're happy to discuss any of these as a later addition.
 
 **₦0.** Everything runs on free plans:
 - website hosting: Vercel's free plan
+- a secure database: Supabase's free plan, which handles many people registering at the same moment
 - the church's Google Sheet
 - emails from the church's Gmail
 
@@ -70,6 +71,7 @@ Everything is set up under **the church's own accounts**.
 
 ## Keeping students' information safe
 
+- Registrations are stored in a secure database (Supabase) that only the website's server can reach, with a copy in the church's Google Sheet. Both accounts belong to the church.
 - The Sheet is shared only with the leaders you name.
 - The form explains clearly how the church will use the information (event, transport, raffle, follow-up), and students agree before registering. Follow-up calls and WhatsApp messages have their own opt-in.
 - Home addresses are asked for only from students who need a bus.

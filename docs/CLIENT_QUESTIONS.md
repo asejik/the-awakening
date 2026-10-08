@@ -37,7 +37,7 @@ Each question has a **suggested answer**. If you're not sure, simply reply "go w
 **6. Do you approve this short notice for the form?**
 *Why it matters:* Nigerian data protection law (NDPA 2023) requires telling people what we collect and why. Being clear also builds trust.
 *Suggested wording:*
-> "By registering, you agree that Citizens of Light Church may use your details to organise The Awakening (including transport and the raffle draw) and to contact you afterwards by phone, WhatsApp or email about church activities. We will not share your details outside the church. ☐ I agree"
+> "By registering, you agree that Citizens of Light Church may use your details to organise The Awakening (including transport and the raffle draw) and to contact you afterwards by phone, WhatsApp or email about church activities. Your details are stored securely with the church's service providers (Supabase and Google) and will not be shared outside the church. ☐ I agree"
 
 You're welcome to edit it.
 
