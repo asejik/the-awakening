@@ -323,7 +323,7 @@ flowchart LR
 
 | Dependency | If it's down or slow | Behaviour |
 |---|---|---|
-| Apps Script / Sheets | Registration can't be saved | Function times out after 15s and returns "We couldn't save your registration. Please try again." No code is shown, because no code exists. Logged in Vercel. |
+| Apps Script / Sheets | Registration can't be saved | Function times out after 20s and returns "We couldn't save your registration. Please try again." No code is shown, because no code exists. Logged in Vercel. |
 | Gmail SMTP (limit reached or outage) | Email not sent | The registrant already has the code on screen. Row marked FAILED; the trigger retries every 15 minutes for up to about 75 minutes (5 attempts), and then the builder re-queues by hand. |
 | Vercel | Site down | Nothing works. Fallback: Plan B Google Form (see §14). |
 
@@ -341,8 +341,8 @@ N/A: none planned or needed.
 | Input validation | Message under each field, e.g. "Enter an 11-digit phone number, e.g. 08012345678." Answers kept. | Same zod schema runs on the server; 400 if invalid | Nothing (normal behaviour) |
 | Network or offline at submit | "You seem to be offline. Your answers are saved here. Tap Submit again when connected." | Form state kept in memory, and in `sessionStorage` in case of an accidental refresh | Nothing |
 | Slow network | Button shows "Registering…" and is disabled; after 8s, "Still working, please don't close this page" | Client timeout 25s, then the error state | — |
-| Apps Script error or timeout | "We couldn't save your registration. Please try again in a minute." | 15s timeout; no automatic retry (avoids double rows), and the user retries. Safe, because de-duplication catches a row that did save. | Vercel log: action, duration, error |
-| Lock contention (bursts) | Same as a slow network | `LockService.waitLock(20000)`; the function's `maxDuration` is about 30s | Apps Script `Log` tab if the lock fails |
+| Apps Script error or timeout | "We couldn't save your registration. Please try again in a minute." | 20s fetch timeout; no automatic retry (avoids double rows), and the user retries. Safe, because de-duplication catches a row that did save. | Vercel log: action, duration, error |
+| Lock contention (bursts) | Same as a slow network; if the lock isn't free within 10s, "busy, try again" | `LockService.tryLock(10000)`; 20s fetch timeout; function `maxDuration` 30s | Apps Script `Log` tab if the lock fails |
 | SMTP failure or Gmail limit | Nothing new (the code is already on screen) | Row → FAILED; the trigger retries | Vercel log plus `Log` tab |
 | Duplicate submission (double tap) | Button disabled after the first tap | The server de-duplicates by phone and email under the lock | — |
 | Re-registration | "You're already registered. We've re-sent your code to the email you used." | The re-send is limited (one per 10 minutes) | — |
@@ -630,7 +630,7 @@ Riskiest first. Every milestone deploys.
 |---|---|---|---|---|
 | Gmail SMTP limit reached or blocked on a burst day | Medium | Medium (late emails) | Code shown on screen; retry trigger; emails only to new rows; bots filtered | `FAILED` rows building up; SMTP 421/550 errors in logs |
 | Gmail flags the church account for automated sending | Low–Medium | High (church email affected) | Low volume, one email per real person, plain transactional content; delete the app password after the event | Security alert email to the church account |
-| Apps Script slow or locked under bursts | Medium | Medium | Lock with a 20s wait; `maxDuration` about 30s; M1 load test | p95 over 8s in M1 or in logs |
+| Apps Script slow or locked under bursts | Medium | Medium | Lock with a 10s wait; 20s fetch timeout; `maxDuration` 30s; M1 load test | p95 over 8s in M1 or in logs |
 | Emails land in spam | Medium | Medium | Sent from real Gmail (passes Google's own sender checks); plain content; "check spam" on the success screen | M1 inbox test; registrants report it |
 | Vercel Hobby "non-commercial" terms | Low | Medium | Free church event; verify the terms; move to the church's own Pro or Netlify if challenged | Vercel notice |
 | Not live by Oct 14 | Low–Medium | High | Thin slices; M1 first; **Plan B: a branded Google Form plus Apps Script emailing codes, buildable in under a day** | M2 not done by Oct 11 |

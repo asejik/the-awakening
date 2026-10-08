@@ -2,8 +2,9 @@
  * The Awakening Registration: Apps Script bound to the event Google Sheet.
  * Paste into Extensions → Apps Script of BOTH the test and the prod Sheet.
  *
- * M0: setupSheet() only. The doPost router (register, setEmailStatus, draw,
- * markWinner) arrives in M1. See docs/PROJECT_PLAN.md §4 and §6.
+ * setupSheet(): run once per Sheet. doPost: the web app called by Vercel
+ * (register, setEmailStatus; draw and markWinner arrive in M6).
+ * See docs/PROJECT_PLAN.md §4 and §6.
  */
 
 var TABS = {
@@ -49,4 +50,124 @@ function setupSheet() {
   // Remove the default empty "Sheet1" if present.
   var blank = ss.getSheetByName('Sheet1');
   if (blank && blank.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(blank);
+}
+
+/* ------------------------------------------------------------------ */
+/* Web app (M1). Deploy: Execute as Me, Who has access: Anyone.        */
+/* Script Properties: GAS_SECRET (same value as Vercel env GAS_SECRET) */
+/* ------------------------------------------------------------------ */
+
+// No 0/O/1/I/L: codes are read aloud at the draw and typed on phones.
+var CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+var LOCK_WAIT_MS = 10000;
+var RESEND_THROTTLE_SECONDS = 600;
+
+function doPost(e) {
+  var out;
+  try {
+    var req = JSON.parse(e.postData.contents);
+    var expected = PropertiesService.getScriptProperties().getProperty('GAS_SECRET');
+    if (!expected || req.secret !== expected) {
+      out = { status: 'unauthorized' };
+    } else if (req.action === 'register') {
+      out = register_(req.payload);
+    } else if (req.action === 'setEmailStatus') {
+      out = setEmailStatus_(req.payload);
+    } else {
+      out = { status: 'error', message: 'unknown action' };
+    }
+  } catch (err) {
+    log_('error', 'doPost', String(err));
+    out = { status: 'error', message: 'server error' };
+  }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function register_(p) {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(LOCK_WAIT_MS)) return { status: 'busy' };
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Registrations');
+    var headers = TABS.Registrations;
+    var col = indexOf_(headers);
+    var lastRow = sheet.getLastRow();
+    var rows = lastRow > 1 ? sheet.getRange(2, 1, lastRow - 1, headers.length).getValues() : [];
+
+    var codes = {};
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (String(r[col.phone]) === p.phone || String(r[col.email]).toLowerCase() === p.email) {
+        var id = String(r[col.id]);
+        var cache = CacheService.getScriptCache();
+        var resend = !cache.get('resend:' + id);
+        if (resend) cache.put('resend:' + id, '1', RESEND_THROTTLE_SECONDS);
+        return {
+          status: 'duplicate', id: id, code: String(r[col.code]),
+          email: String(r[col.email]), full_name: String(r[col.full_name]), resend: resend,
+        };
+      }
+      codes[String(r[col.code])] = true;
+    }
+
+    var code;
+    do { code = randomCode_(); } while (codes[code]);
+
+    var now = new Date();
+    var record = {
+      id: Utilities.getUuid(), created_at: now, code: code,
+      full_name: p.full_name, gender: p.gender, institution: p.institution,
+      institution_other: p.institution_other, department: p.department,
+      phone: p.phone, email: p.email, needs_transport: p.needs_transport,
+      area: p.area, address: p.address, consent_at: now,
+      followup_optin: p.followup_optin, age_confirmed: p.age_confirmed,
+      email_status: 'PENDING', email_attempts: 0, emailed_at: '', source: p.source,
+    };
+    sheet.appendRow(headers.map(function (h) { return safe_(record[h]); }));
+    SpreadsheetApp.flush();
+    return { status: 'created', id: record.id, code: code };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function setEmailStatus_(p) {
+  if (p.email_status !== 'SENT' && p.email_status !== 'FAILED') return { status: 'error', message: 'bad status' };
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Registrations');
+  var col = indexOf_(TABS.Registrations);
+  var cell = sheet.getRange(2, col.id + 1, Math.max(sheet.getLastRow() - 1, 1), 1)
+    .createTextFinder(String(p.id)).matchEntireCell(true).findNext();
+  if (!cell) return { status: 'error', message: 'id not found' };
+
+  var row = cell.getRow();
+  var attempts = Number(sheet.getRange(row, col.email_attempts + 1).getValue()) || 0;
+  sheet.getRange(row, col.email_status + 1).setValue(p.email_status);
+  sheet.getRange(row, col.email_attempts + 1).setValue(attempts + 1);
+  if (p.email_status === 'SENT') sheet.getRange(row, col.emailed_at + 1).setValue(new Date());
+  return { status: 'ok' };
+}
+
+function randomCode_() {
+  var s = '';
+  for (var i = 0; i < 4; i++) s += CODE_ALPHABET.charAt(Math.floor(Math.random() * CODE_ALPHABET.length));
+  return s;
+}
+
+/** Stops user input from being evaluated as a formula. Dates and numbers pass through. */
+function safe_(v) {
+  if (v === null || v === undefined) return '';
+  if (typeof v !== 'string') return v;
+  return /^[=+\-@]/.test(v) ? "'" + v : v;
+}
+
+function indexOf_(headers) {
+  var m = {};
+  headers.forEach(function (h, i) { m[h] = i; });
+  return m;
+}
+
+function log_(level, action, message) {
+  try {
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log')
+      .appendRow([new Date(), level, action, String(message).slice(0, 500)]);
+  } catch (ignored) { /* logging must never break a request */ }
 }

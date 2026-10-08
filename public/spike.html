@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- M1 SPIKE ONLY: delete in M2. Bare form to exercise /api/register. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Spike: register</title>
+<style>body{font:16px system-ui;max-width:420px;margin:24px auto;padding:0 16px}label{display:block;margin-top:10px}input,select{width:100%;padding:8px;font:inherit}button{margin-top:16px;padding:10px 16px;font:inherit}pre{background:#eee;padding:12px;white-space:pre-wrap}</style>
+</head>
+<body>
+<h1>Spike: register</h1>
+<form id="f">
+  <label>Full name <input name="full_name" required></label>
+  <label>Gender <select name="gender"><option>Male</option><option>Female</option></select></label>
+  <label>Institution <input name="institution" value="University of Ilorin"></label>
+  <label>Department <input name="department" value="Test"></label>
+  <label>Phone <input name="phone" required></label>
+  <label>Email <input name="email" type="email" required></label>
+  <label><input type="checkbox" name="needs_transport" style="width:auto"> Needs transport</label>
+  <label>Area <input name="area"></label>
+  <label>Address <input name="address"></label>
+  <label><input type="checkbox" name="consent" checked style="width:auto"> Consent</label>
+  <label><input type="checkbox" name="age_confirmed" checked style="width:auto"> 18+ / guardian consent</label>
+  <button>Submit</button>
+</form>
+<pre id="out"></pre>
+<script>
+document.getElementById('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target), body = Object.fromEntries(fd);
+  for (const k of ['needs_transport', 'consent', 'age_confirmed']) body[k] = fd.has(k);
+  body.source = 'spike';
+  const out = document.getElementById('out'), t = performance.now();
+  out.textContent = 'Submitting…';
+  try {
+    const r = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    out.textContent = 'HTTP ' + r.status + ' in ' + Math.round(performance.now() - t) + 'ms\n' + JSON.stringify(await r.json(), null, 2);
+  } catch (err) { out.textContent = 'Network error: ' + err; }
+});
+</script>
+</body>
+</html>
