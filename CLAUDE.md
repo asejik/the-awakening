@@ -29,6 +29,8 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
 - `npm run typecheck`: `tsc -b` across three projects: `tsconfig.app.json` (src), `tsconfig.node.json` (configs) and `tsconfig.api.json` (api)
 - `npm run lint`: oxlint, config in `.oxlintrc.json`
 - `npm test`: runs all Vitest tests (`src/**/*.test.ts`, `api/**/*.test.ts`). For a single test: `npx vitest run path/to/file.test.ts -t "name"`.
+- `bash scripts/clip.sh <files…>`: copy files to the Windows clipboard from WSL (UTF-8 safe), e.g. migrations for the Supabase SQL editor or `apps-script/Code.gs`
+- `node --env-file=.env.live scripts/export-registrations.mjs > file.csv`: CSV backup of one event (`.env.live` is git-ignored)
 - `npm run test:e2e`: Playwright smoke tests (`e2e/`). They start their own dev server on :3200 against TEST with `EMAIL_MODE=log`, and delete `source=e2e` rows afterwards. For a single test: `npx playwright test e2e/registration.spec.ts -g "name"`. E2E submits wait 3s, because the server treats faster submits as bots.
 
 ## Layout

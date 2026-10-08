@@ -24,6 +24,8 @@ var TABS = {
   ],
   Winners: ['drawn_at', 'code', 'registration_id', 'status', 'round'],
   Log: ['at', 'level', 'action', 'message'],
+  // P03-09: record every deletion request handled (filled in by hand; see docs/ADMIN_GUIDE.md).
+  Deletions: ['date', 'registration_id', 'requested_via', 'done_by', 'notes'],
 };
 
 // Written with a leading ' so Sheets keeps them as text: it drops the leading 0 of

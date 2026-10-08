@@ -146,3 +146,13 @@
   - `scripts/smoke.mjs` for deployed checks
 - **Checks:** 96 unit, 6/6 e2e.
 - **Pending builder:** run 003 on TEST; SQL/Security Advisor output (S-05); 2FA.
+
+## 2026-10-08 · M5 launch prep
+- Audits closed: P04/P08/P03 READY. Migration 004 run on TEST; Advisor clean (2 INFO, intended).
+- **Added:**
+  - `docs/ADMIN_GUIDE.md` (for the church team)
+  - `scripts/export-registrations.mjs` (CSV backup; formula-safe; NULLs import cleanly)
+  - `scripts/clip.sh` (WSL → Windows clipboard, UTF-8 safe)
+  - `Deletions` tab in `setupSheet`
+- **Decisions:** open as soon as LIVE is verified; LIVE alerts to clcchurchmedia@gmail.com; one custom QR (Awakening logo in the centre), made after launch.
+- **Next:** builder sets up LIVE (Supabase 001–004, Vercel Production env, LIVE Sheet). Then smoke test, a real registration, Yahoo/Outlook and WhatsApp checks, go-live, QR code.
