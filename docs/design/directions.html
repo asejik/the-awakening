@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Awakening Design Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,500;1,700&family=Anton&family=Archivo:wdth,wght@75..125,400..800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FAF0DC; --cream-2:#F3E3C3; --ember:#F05A35; --ember-700:#C7381A;
+    --maroon:#4E0710; --maroon-900:#2A0408; --ink:#140A0A; --white:#FFF8F6;
+    --error:#B3261E;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#E9E2D6;color:var(--ink);font-family:"Barlow Condensed",system-ui,sans-serif;padding:32px 16px 64px}
+  .doc{max-width:1180px;margin:0 auto}
+  .doc>header h1{font-family:"Lilita One";font-size:clamp(28px,5vw,44px);line-height:1}
+  .doc>header p{font-size:20px;max-width:70ch;margin-top:8px}
+  section.dir{margin-top:48px;background:#fff;border-radius:20px;padding:24px;box-shadow:0 1px 2px rgba(0,0,0,.06),0 12px 32px rgba(0,0,0,.08)}
+  .dir h2{font-family:"Lilita One";font-size:32px;line-height:1.05}
+  .dir .tag{display:inline-block;font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:#fff;padding:2px 8px;border-radius:4px;margin-bottom:8px}
+  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px 28px;margin:16px 0 24px;font-size:18px;line-height:1.35}
+  .meta b{display:block;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#6b5b55}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .sw{width:46px;height:46px;border-radius:10px;border:1px solid rgba(0,0,0,.15);display:flex;align-items:flex-end;font-size:10px;padding:3px;color:#fff;font-weight:700}
+  .phones{display:flex;gap:28px;flex-wrap:wrap;justify-content:center}
+  .phone{width:360px;max-width:100%;height:760px;border-radius:28px;overflow:hidden;position:relative;border:8px solid #111;box-shadow:0 20px 40px rgba(0,0,0,.25);flex:none}
+  .phone .scroll{height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+  .cap{text-align:center;font-weight:600;font-size:16px;margin-top:10px;color:#6b5b55}
+  @media (max-width:420px){.phone{width:100%}}
+
+  /* ============ DIRECTION A — FLYER, ALIVE ============ */
+  .a{background:var(--cream);color:var(--ink)}
+  .a .hero{position:relative;padding:16px 16px 28px;overflow:hidden}
+  .a .burst{position:absolute;left:50%;top:40px;width:680px;height:680px;transform:translateX(-50%);fill:var(--ember);z-index:0}
+  .a .blob{position:absolute;background:var(--maroon);border-radius:58% 42% 50% 50%/50% 60% 40% 50%;z-index:0}
+  .a .top{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center}
+  .a .clc{display:flex;align-items:center;gap:8px;font-weight:700;font-size:12px;letter-spacing:.06em;line-height:1.05;text-transform:uppercase}
+  .a .clc img{width:34px;height:34px;border-radius:50%}
+  .a .badges{position:relative;z-index:2;display:flex;justify-content:space-between;margin-top:22px;padding:0 4px}
+  .a .badge{width:96px;height:96px;border-radius:50%;background:var(--maroon);box-shadow:3px 3px 0 var(--ink);position:relative;display:grid;place-items:center;text-align:center;color:var(--cream)}
+  .a .badge svg{position:absolute;inset:0;animation:spin 18s linear infinite}
+  .a .badge text{font-family:"Barlow Condensed";font-weight:600;font-size:10.5px;letter-spacing:.12em;fill:var(--cream)}
+  .a .badge .d{font-family:"Barlow Condensed";font-style:italic;font-weight:700;font-size:22px;line-height:.9}
+  .a .badge .t{font-family:"Barlow Condensed";font-style:italic;font-weight:700;font-size:17px;border-top:2px solid var(--ember);margin-top:3px;padding-top:2px}
+  .a .title{position:relative;z-index:2;width:100%;margin-top:-6px;filter:drop-shadow(0 0 0 transparent)}
+  .a .plug{position:relative;z-index:2;margin:-6px auto 0;width:max-content;background:var(--maroon);color:var(--cream);font-family:"Lilita One";font-size:26px;line-height:.95;text-align:center;padding:8px 18px;letter-spacing:.02em}
+  .a .venue{position:relative;z-index:2;margin:18px 6px 0;background:var(--maroon);color:var(--cream);padding:12px 14px;box-shadow:5px 5px 0 var(--cream);font-style:italic;text-transform:uppercase;font-size:17px;line-height:1.1;text-align:center}
+  .a .venue b{display:block;font-size:20px}
+  .a .cta{position:relative;z-index:2;display:flex;justify-content:center;margin-top:20px}
+  .a .btn{font-family:"Lilita One";font-size:22px;letter-spacing:.02em;background:var(--cream);color:var(--ink);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:12px 26px;border-radius:14px;min-height:52px;cursor:pointer;transition:transform 150ms cubic-bezier(.2,.8,.2,1),box-shadow 150ms cubic-bezier(.2,.8,.2,1)}
+  .a .btn:active{transform:translate(4px,4px);box-shadow:1px 1px 0 var(--ink)}
+  .a .btn.primary{background:var(--ember);color:var(--ink)}
+  .a .form{padding:26px 16px 32px}
+  .a .label-tag{display:inline-block;background:var(--white);border:2px solid var(--ink);font-family:"Lilita One";font-size:15px;color:var(--ember-700);padding:2px 10px;transform:rotate(-2deg);margin-bottom:8px}
+  .a h3{font-family:"Lilita One";font-size:32px;line-height:1;margin-bottom:4px}
+  .a .sub{font-size:18px;line-height:1.3;color:#4a3a36;margin-bottom:18px}
+  .a .field{margin-bottom:14px}
+  .a .field label{display:block;font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+  .a .input{width:100%;min-height:50px;background:var(--white);border:2.5px solid var(--ink);border-radius:12px;padding:10px 14px;font:500 19px "Barlow Condensed";color:var(--ink)}
+  .a .input.focus{box-shadow:4px 4px 0 var(--ember);outline:none}
+  .a .input.err{border-color:var(--error)}
+  .a .msg{color:var(--error);font-weight:600;font-size:16px;margin-top:5px;display:flex;gap:6px;align-items:center}
+  .a .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .a .seg span{min-height:48px;border:2.5px solid var(--ink);border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:18px;background:var(--white)}
+  .a .seg span.on{background:var(--ink);color:var(--cream)}
+
+  /* ticket (A) */
+  .a.success{background:var(--ember);min-height:100%;padding:18px 16px 32px;position:relative;overflow:hidden}
+  .a.success .title-sm{width:180px;display:block;margin:4px auto 0}
+  .a.success h3{color:var(--ink);text-align:center;margin-top:10px}
+  .a.success .sub{text-align:center;color:var(--ink)}
+  .ticket-a{position:relative;margin:8px auto 0;width:300px;background:var(--cream);border:3px solid var(--ink);border-radius:18px;box-shadow:7px 7px 0 var(--ink);animation:stamp 400ms cubic-bezier(.2,.8,.2,1) both}
+  .ticket-a .head{background:var(--maroon);color:var(--cream);border-radius:14px 14px 0 0;padding:10px 14px;display:flex;justify-content:space-between;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase}
+  .ticket-a .code{font-family:"Lilita One";font-size:76px;letter-spacing:.08em;text-align:center;padding:14px 0 4px;color:var(--ink);line-height:1}
+  .ticket-a .lbl{text-align:center;font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--ember-700)}
+  .ticket-a .perf{position:relative;border-top:3px dashed var(--ink);margin:16px 0 0}
+  .ticket-a .perf:before,.ticket-a .perf:after{content:"";position:absolute;top:-15px;width:26px;height:26px;border-radius:50%;background:var(--ember);border:3px solid var(--ink)}
+  .ticket-a .perf:before{left:-16px;clip-path:inset(0 0 0 50%)} .ticket-a .perf:after{right:-16px;clip-path:inset(0 50% 0 0)}
+  .ticket-a .stub{padding:12px 16px 14px;font-size:16px;line-height:1.25;font-style:italic;text-transform:uppercase;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .ticket-a .stub b{display:block;font-style:normal;font-size:12px;letter-spacing:.1em;color:#6b5b55}
+  .stamp{position:absolute;right:-10px;top:-16px;transform:rotate(14deg);border:3px solid var(--ember-700);color:var(--ember-700);font-family:"Lilita One";font-size:18px;padding:2px 8px;border-radius:8px;background:rgba(250,240,220,.85);animation:stampIn 250ms 380ms cubic-bezier(.2,.8,.2,1) both}
+  .a .shot{position:relative;z-index:2;display:flex;gap:8px;align-items:center;text-align:left;margin:22px auto 0;width:300px;background:var(--maroon);color:var(--cream);padding:10px 14px;font-size:17px;line-height:1.25;text-align:center}
+
+  /* ============ DIRECTION B — STAGE NIGHT ============ */
+  .b{background:var(--maroon-900);color:var(--cream);font-family:"Archivo",sans-serif}
+  .b .hero{position:relative;padding:16px 18px 26px;overflow:hidden;background:radial-gradient(120% 70% at 50% 34%,#6A0E16 0%,var(--maroon-900) 62%)}
+  .b .top{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+  .b .top img{width:30px;height:30px;border-radius:50%;vertical-align:middle;margin-right:6px}
+  .b .kicker{margin-top:26px;font-family:"Anton";font-size:15px;letter-spacing:.24em;color:var(--ember);text-align:center}
+  .b .title{width:96%;display:block;margin:10px auto 0}
+  .b .dates{display:grid;grid-template-columns:1fr 1fr;margin-top:18px;border-top:1px solid rgba(250,240,220,.25);border-bottom:1px solid rgba(250,240,220,.25)}
+  .b .dates div{padding:12px 4px;text-align:center}
+  .b .dates div+div{border-left:1px solid rgba(250,240,220,.25)}
+  .b .dates b{display:block;font-family:"Anton";font-size:30px;line-height:1;color:var(--cream)}
+  .b .dates span{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+  .b .venue{margin-top:14px;font-size:14px;line-height:1.45;text-align:center;opacity:.9;font-variation-settings:"wdth" 88}
+  .b .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+  .b .chips span{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid rgba(250,240,220,.35);border-radius:999px;padding:5px 10px}
+  .b .btn{display:block;width:100%;margin-top:20px;min-height:54px;border:0;border-radius:999px;background:var(--ember);color:var(--maroon-900);font:800 17px "Archivo";letter-spacing:.06em;text-transform:uppercase;font-variation-settings:"wdth" 110;transition:transform 150ms cubic-bezier(.2,.8,.2,1)}
+  .b .btn:active{transform:scale(.97)}
+  .b .form{background:var(--cream);color:var(--ink);border-radius:26px 26px 0 0;padding:26px 18px 32px;margin-top:-4px}
+  .b h3{font-family:"Anton";font-size:30px;line-height:1.05;letter-spacing:.01em;text-transform:uppercase}
+  .b .sub{font-size:15px;line-height:1.45;color:#5a4a46;margin:6px 0 18px}
+  .b .field{margin-bottom:14px}
+  .b .field label{display:block;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;color:var(--maroon)}
+  .b .input{width:100%;min-height:50px;border:0;border-bottom:2px solid #8b7a72;background:var(--cream-2);border-radius:10px 10px 0 0;padding:12px 14px;font:500 16px "Archivo";color:var(--ink)}
+  .b .input.focus{border-bottom-color:var(--ember-700);box-shadow:inset 0 -2px 0 var(--ember-700)}
+  .b .input.err{border-bottom-color:var(--error)}
+  .b .msg{color:var(--error);font-size:14px;font-weight:600;margin-top:5px}
+  .b .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--cream-2);border-radius:999px;padding:4px}
+  .b .seg span{min-height:44px;display:grid;place-items:center;border-radius:999px;font-weight:700;font-size:15px}
+  .b .seg span.on{background:var(--maroon);color:var(--cream)}
+  .b.success{min-height:100%;padding:18px 18px 32px;background:radial-gradient(120% 60% at 50% 40%,#6A0E16 0%,var(--maroon-900) 65%)}
+  .b.success .title-sm{width:170px;display:block;margin:6px auto 0}
+  .b.success h3{text-align:center;margin-top:12px;color:var(--cream)}
+  .b.success .sub{text-align:center;color:rgba(250,240,220,.85)}
+  .band{margin:14px auto 0;width:300px;height:150px;border-radius:14px;background:var(--ember);color:var(--maroon-900);display:grid;grid-template-columns:1fr 76px;overflow:hidden;animation:stamp 400ms cubic-bezier(.2,.8,.2,1) both;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+  .band .main{padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between}
+  .band .lbl{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+  .band .code{font-family:"Anton";font-size:68px;line-height:.9;letter-spacing:.06em}
+  .band .side{background:var(--maroon-900);color:var(--ember);writing-mode:vertical-rl;transform:rotate(180deg);display:grid;place-items:center;font-family:"Anton";font-size:16px;letter-spacing:.2em;border-left:2px dashed var(--ember)}
+  .b .shot{margin:20px auto 0;width:300px;border:1px solid rgba(250,240,220,.3);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.45;text-align:center}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes stamp{from{opacity:0;transform:scale(1.12) rotate(-3deg)}to{opacity:1;transform:none}}
+  @keyframes stampIn{from{opacity:0;transform:rotate(14deg) scale(1.8)}to{opacity:1;transform:rotate(14deg) scale(1)}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="doc">
+  <header>
+    <h1>The Awakening: two design directions</h1>
+    <p>Mockups at phone width (360px) of the registration screen and the success "raffle ticket" screen. Both directions use the official title artwork and the Citizens of Light Church mark. Scroll inside each phone to see more.</p>
+  </header>
+
+  <!-- ===================== A ===================== -->
+  <section class="dir">
+    <span class="tag">Direction A · Recommended</span>
+    <h2>Flyer, Alive</h2>
+    <div class="meta">
+      <div><b>Personality</b>Loud, joyful, street-bold, sticker-pasted. It looks exactly like the poster people just saw on WhatsApp Status, now something they can tap.</div>
+      <div><b>Palette</b>Cream base, ember-orange starburst, maroon info panels, black ink outlines with hard offset shadows.
+        <div class="swatches"><span class="sw" style="background:#FAF0DC;color:#140A0A">cream</span><span class="sw" style="background:#F05A35;color:#140A0A">ember</span><span class="sw" style="background:#C7381A">e-700</span><span class="sw" style="background:#4E0710">maroon</span><span class="sw" style="background:#140A0A">ink</span></div></div>
+      <div><b>Type</b>Lilita One (chunky display, echoes "FRESHERS PLUG IN"), plus Barlow Condensed with italic for details (echoes the flyer's venue text). The title is the real artwork.</div>
+      <div><b>Layout</b>The poster as the first screen: starburst, Day badges, title, venue panel, then the form on cream. Inputs and buttons are "stickers" with a thick black outline and a hard shadow.</div>
+      <div><b>Motion</b>Tactile and minimal. Buttons physically press into their shadow (150ms). The Day badges rotate slowly. The ticket stamps in (400ms). Everything is off for reduced-motion users.</div>
+      <div><b>Signature moments</b>① Rotating DAY 1 / DAY 2 badges lifted straight from the flyer. ② Sticker-press buttons. ③ A raffle ticket with a perforated stub and an "ENTERED!" rubber stamp.</div>
+    </div>
+    <div class="phones">
+      <div>
+        <div class="phone"><div class="scroll a" id="a-reg">
+          <div class="hero">
+            <div class="blob" style="width:120px;height:110px;left:-40px;top:520px"></div>
+            <div class="blob" style="width:140px;height:120px;right:-50px;top:590px"></div>
+            <svg class="burst" viewBox="-100 -100 200 200" data-points="16"></svg>
+            <div class="top">
+              <div class="clc"><img src="assets/clc-mark.webp" alt="">Citizens<br>of Light Church</div>
+            </div>
+            <div class="badges">
+              <div class="badge"><svg viewBox="0 0 100 100"><defs><path id="ca" d="M50,50 m-42,0 a42,42 0 1,1 84,0 a42,42 0 1,1 -84,0"/></defs><text><textPath href="#ca">DAY 1 · DAY 1 · DAY 1 · DAY 1 · DAY 1 ·</textPath></text></svg><div><div class="d">OCT.<br>24TH</div><div class="t">4PM</div></div></div>
+              <div class="badge"><svg viewBox="0 0 100 100" style="animation-direction:reverse"><defs><path id="cb" d="M50,50 m-42,0 a42,42 0 1,1 84,0 a42,42 0 1,1 -84,0"/></defs><text><textPath href="#cb">DAY 2 · DAY 2 · DAY 2 · DAY 2 · DAY 2 ·</textPath></text></svg><div><div class="d">OCT.<br>25TH</div><div class="t">9AM</div></div></div>
+            </div>
+            <img class="title" src="assets/title.webp" alt="The Awakening">
+            <div class="plug">FRESHERS<br>PLUG IN</div>
+            <div class="venue"><b>Freedom Dome, Tanke</b>Ilesanmi Bus Stop, University Rd, Ilorin</div>
+            <div class="cta"><button class="btn primary">Register free →</button></div>
+          </div>
+          <div class="form">
+            <span class="label-tag">IT'S FREE</span>
+            <h3>Plug in. Grab your raffle ticket.</h3>
+            <p class="sub">Takes about a minute. You'll get a raffle code for prize draws at the event.</p>
+            <div class="field"><label>Full name</label><input class="input focus" value="Tolulope Adeyemi"></div>
+            <div class="field"><label>Gender</label><div class="seg"><span>Male</span><span class="on">Female</span></div></div>
+            <div class="field"><label>Phone (WhatsApp)</label><input class="input err" value="0801 234 56"><div class="msg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>Enter an 11-digit number, e.g. 08012345678</div></div>
+            <div class="field"><label>Institution</label><input class="input" value="University of Ilorin  ▾"></div>
+            <div class="field"><label>Need a pickup bus?</label><div class="seg"><span class="on">Yes</span><span>No</span></div></div>
+            <button class="btn primary" style="width:100%;margin-top:8px">Get my ticket</button>
+          </div>
+        </div></div>
+        <p class="cap">Registration (scrolls)</p>
+      </div>
+      <div>
+        <div class="phone"><div class="a success">
+          <div class="blob" style="width:130px;height:120px;left:-50px;bottom:-30px"></div>
+          <div class="blob" style="width:150px;height:130px;right:-60px;bottom:40px"></div>
+          <img class="title-sm" src="assets/title.webp" alt="The Awakening">
+          <h3>You're plugged in, Tolu!</h3>
+          <p class="sub">Here's your raffle ticket. We've emailed it too.</p>
+          <div class="ticket-a">
+            <div class="head"><span>Raffle ticket</span></div>
+            <div style="font-family:'Lilita One';font-size:22px;line-height:1.05;text-align:center;padding:14px 16px 0">Tolulope Adeyemi</div>
+            <div class="code" style="padding-top:6px">K7QX</div>
+            <div class="lbl">Your raffle code</div>
+            <div class="perf"></div>
+            <div class="stub"><div><b>Day 1</b>Oct 24 · 4PM</div><div><b>Day 2</b>Oct 25 · 9AM</div><div style="grid-column:1/-1"><b>Venue</b>Freedom Dome, Tanke, Ilorin</div></div>
+            <div class="stamp">ENTERED!</div>
+          </div>
+          <div class="shot"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg><span>Screenshot this ticket. You'll need the code if you win.</span></div>
+        </div></div>
+        <p class="cap">Success: raffle ticket</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== B ===================== -->
+  <section class="dir">
+    <span class="tag">Direction B</span>
+    <h2>Stage Night</h2>
+    <div class="meta">
+      <div><b>Personality</b>Electric, premium, concert-ready. It feels like a ticketed show: the night before the big event, not the poster on the wall.</div>
+      <div><b>Palette</b>Deep maroon-black stage, a warm spotlight glow behind the title, ember as the single accent, cream for the form sheet.
+        <div class="swatches"><span class="sw" style="background:#2A0408">stage</span><span class="sw" style="background:#4E0710">maroon</span><span class="sw" style="background:#F05A35;color:#2A0408">ember</span><span class="sw" style="background:#FAF0DC;color:#140A0A">cream</span></div></div>
+      <div><b>Type</b>Anton (tall, poster-condensed) for headings and big numbers; Archivo (a variable-width sans) for body and form text. Cleaner and more editorial.</div>
+      <div><b>Layout</b>A dark hero with dates in a ruled two-column strip, and programme chips. The form slides up as a cream sheet with rounded top corners. Inputs are soft filled fields with no outlines.</div>
+      <div><b>Motion</b>Smooth and cinematic. The sheet rises in, buttons scale on press, and the wristband ticket fades in at scale. There's no ambient motion. Everything is off for reduced-motion users.</div>
+      <div><b>Signature moments</b>① A static spotlight glow behind the title artwork. ② Dates set like a concert listing. ③ An orange "wristband" ticket with a tear-off stub.</div>
+    </div>
+    <div class="phones">
+      <div>
+        <div class="phone"><div class="scroll b">
+          <div class="hero">
+            <div class="top"><span><img src="assets/clc-mark.webp" alt="">Citizens of Light Church</span><span>Ilorin</span></div>
+            <div class="kicker">FRESHERS PLUG IN</div>
+            <img class="title" src="assets/title.webp" alt="The Awakening">
+            <div class="dates"><div><b>OCT 24</b><span>Day 1 · 4PM</span></div><div><b>OCT 25</b><span>Day 2 · 9AM</span></div></div>
+            <p class="venue">Freedom Dome, Ilesanmi Bus Stop,<br>University Road, Tanke, Ilorin</p>
+            <div class="chips"><span>Music</span><span>Freedom Studio Film</span><span>Word</span><span>Conscious Flow</span><span>Prayer</span></div>
+            <button class="btn">Register free</button>
+          </div>
+          <div class="form">
+            <h3>Claim your spot</h3>
+            <p class="sub">Free entry. Registration gives you a raffle code for prize draws at the event.</p>
+            <div class="field"><label>Full name</label><input class="input focus" value="Tolulope Adeyemi"></div>
+            <div class="field"><label>Gender</label><div class="seg"><span>Male</span><span class="on">Female</span></div></div>
+            <div class="field"><label>Phone (WhatsApp)</label><input class="input err" value="0801 234 56"><div class="msg">Enter an 11-digit number, e.g. 08012345678</div></div>
+            <div class="field"><label>Institution</label><input class="input" value="University of Ilorin  ▾"></div>
+            <button class="btn" style="background:var(--maroon);color:var(--cream)">Get my code</button>
+          </div>
+        </div></div>
+        <p class="cap">Registration (scrolls)</p>
+      </div>
+      <div>
+        <div class="phone"><div class="b success">
+          <img class="title-sm" src="assets/title.webp" alt="The Awakening">
+          <h3>You're in, Tolu</h3>
+          <p class="sub">Your raffle code is below and in your inbox.</p>
+          <div class="band"><div class="main"><span class="lbl">Raffle code</span><span class="code">K7QX</span><span class="lbl">Oct 24–25 · Tanke</span></div><div class="side">ADMIT ONE</div></div>
+          <div class="shot">Screenshot this. Winners must show their code at the draw.</div>
+        </div></div>
+        <p class="cap">Success: wristband ticket</p>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+  // starburst polygon for Direction A
+  document.querySelectorAll('svg.burst').forEach(s=>{
+    const n=+s.dataset.points, pts=[];
+    for(let i=0;i<n*2;i++){const r=i%2?62:100, a=Math.PI*i/n - Math.PI/2; pts.push((r*Math.cos(a)).toFixed(1)+','+(r*Math.sin(a)).toFixed(1));}
+    s.innerHTML='<polygon points="'+pts.join(' ')+'" stroke-linejoin="round"/>';
+  });
+</script>
+</body>
+</html>

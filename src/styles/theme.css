@@ -1,0 +1,67 @@
+/* Design tokens: docs/DESIGN.md §9. All UI uses these; no one-off values. */
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FAF0DC;
+  --color-paper: #FFF8F6;
+  --color-ember: #F05A35;
+  --color-ember-700: #C7381A;
+  --color-maroon: #4E0710;
+  --color-ink: #140A0A;
+  --color-muted: #5C4842;
+  --color-error: #B3261E;
+  --color-success: #1F6B3A;
+
+  --font-display: "Lilita One", "Arial Black", sans-serif;
+  --font-text: "Barlow Condensed", "Arial Narrow", sans-serif;
+
+  --text-code: 76px;   --text-code--line-height: 1;
+  --text-h1: 32px;     --text-h1--line-height: 1;
+  --text-h2: 26px;     --text-h2--line-height: 0.95;
+  --text-button: 22px; --text-button--line-height: 1;
+  --text-lead: 18px;   --text-lead--line-height: 1.3;
+  --text-body: 19px;   --text-body--line-height: 1.3;
+  --text-label: 15px;  --text-label--line-height: 1.2;
+  --text-detail: 17px; --text-detail--line-height: 1.1;
+  --text-small: 16px;  --text-small--line-height: 1.25;
+  --text-meta: 13px;   --text-meta--line-height: 1.2;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  --shadow-hard-sm: 3px 3px 0 var(--color-ink);
+  --shadow-hard: 5px 5px 0 var(--color-ink);
+  --shadow-hard-lg: 7px 7px 0 var(--color-ink);
+  --shadow-panel: 5px 5px 0 var(--color-cream);
+  --shadow-focus: 4px 4px 0 var(--color-ember);
+  --shadow-pressed: 1px 1px 0 var(--color-ink);
+
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --animate-badge-spin: badge-spin 18s linear infinite;
+  --animate-ticket-in: ticket-in 400ms var(--ease-out) both;
+  --animate-stamp-in: stamp-in 250ms 380ms var(--ease-out) both;
+
+  @keyframes badge-spin { to { transform: rotate(360deg); } }
+  @keyframes ticket-in { from { opacity: 0; transform: scale(1.12) rotate(-3deg); } to { opacity: 1; transform: none; } }
+  @keyframes stamp-in { from { opacity: 0; transform: rotate(14deg) scale(1.8); } to { opacity: 1; transform: rotate(14deg) scale(1); } }
+}
+
+:root {
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 400ms;
+  --border-ink: 2.5px;
+  --border-ink-thick: 3px;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
