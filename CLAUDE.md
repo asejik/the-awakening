@@ -24,7 +24,8 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
 
 - `npm run dev`: frontend only (Vite). It does **not** run `/api` functions.
 - `npm run dev:full`: frontend plus `/api` functions via `scripts/dev-server.mjs` (Vite middleware, Vercel-style handler shim), with env from `.env.local`. Use this, not `vercel dev`, which was slow and did not load `.env.local` here.
-- `npm run build`: type check (`tsc -b`) plus the Vite build
+- `npm run build`: type check (`tsc -b`), Vite build, SSR build of `src/entry-server.tsx`, then `scripts/prerender.mjs` (injects the rendered HTML into `dist/index.html` and inlines the CSS)
+- `npm run email:build`: re-render `emails/Confirmation.tsx` into `api/_lib/email-template.ts`. **Run it after any email change**; a test fails if the template is stale.
 - `npm run typecheck`: `tsc -b` across three projects: `tsconfig.app.json` (src), `tsconfig.node.json` (configs) and `tsconfig.api.json` (api)
 - `npm run lint`: oxlint, config in `.oxlintrc.json`
 - `npm test`: runs all Vitest tests (`src/**/*.test.ts`, `api/**/*.test.ts`). For a single test: `npx vitest run path/to/file.test.ts -t "name"`.
@@ -36,7 +37,8 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
 - `shared/`: code used by both the page and `api/`: `registration.ts` (the one zod schema plus `toPayload`), `event.ts` (event content), `phone.ts`.
 - `api/`: Vercel Functions (Node, `@vercel/node` types)
 - `apps-script/Code.gs`: pasted by hand into each event Sheet's Apps Script editor. It isn't deployed from this repo.
-- `public/assets/`: optimised images actually shipped
+- `public/assets/`, `public/fonts/` (self-hosted woff2), `public/og.jpg` (link preview; `scripts/make-og.py` rebuilds it): files actually shipped
+- `emails/`: email source (React Email + Tailwind). Fluid layout only, no `sm:` classes, no `<Font>` (see DESIGN.md §11).
 - `brand/`: source artwork only. It's never referenced by the app; the 1.4 MB flyer must never be loaded by the page.
 
 ## Architecture rules that need several files to understand
@@ -52,6 +54,7 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
   - Prefix values starting with `= + - @` with `'`.
 - **No secrets in `VITE_` variables.** `VITE_` variables are compiled into the bundle. The secrets are `SUPABASE_SECRET_KEY`, `SMTP_USER`, `SMTP_PASS`, `RETRY_SECRET` and `DRAW_PASSPHRASE`, and they stay server-side.
 - **Reuse:** event content lives in `shared/event.ts` (used by page and server), plus env vars (`EVENT_SLUG`, open/close times). Every table has an `event` column; each event gets its own Sheet.
+- **Prerender and hydration:** `dist/index.html` contains the server-rendered app and `main.tsx` hydrates it. Anything rendered at first paint must be SSR-safe (no `window` during render). The lazy `RegistrationForm` mounts only after hydration (`hydrated` flag in `App.tsx`); keep it that way, or React throws error #419.
 - **Environments:** local and Preview use the TEST Supabase project, TEST Sheet and `EMAIL_MODE=log`. Production uses LIVE with `EMAIL_MODE=smtp`. Migrations run on TEST first, then LIVE.
 
 ## Visual identity (full system in `docs/DESIGN.md`; source artwork in `brand/`)

@@ -313,3 +313,22 @@ Spacing uses Tailwind's default 4px scale (`p-4` = 16px, and so on). Don't add a
   - LCP target under 2.5s on Fast 3G
 - **Accepted bend:** the badge rotation is ambient motion. It's kept because it's the flyer's own signature; it's slow, never behind body text, and disabled under reduced motion.
 - **The raffle draw screen (M6)** uses the same tokens at projector scale. Its design gets a separate P06-B pass before it's built.
+
+---
+
+## 11. Email (confirmation and re-send)
+
+- **Source:** `emails/Confirmation.tsx` (React Email + Tailwind, same colour tokens). `npm run email:build` renders it into `api/_lib/email-template.ts`, which is committed. A test fails if the template is stale.
+- **Structure:**
+  1. An ember header band with the title artwork (`/assets/email-title.png`; PNG because some clients can't show WebP) and the "Freshers Plug In" tag
+  2. Heading and intro
+  3. The **ticket**: maroon "RAFFLE TICKET" bar, full name, a 52px code, "YOUR RAFFLE CODE", dashed perforation, then Day 1, Day 2 and the full venue. The hard shadow is faked with 9px right and bottom borders, since `box-shadow` isn't reliable in email.
+  4. A maroon "keep this email" bar
+  5. Sign-off and footer
+- **Responsive by being fluid:** max 600px, percentage widths, and sizes that work from 320px up.
+  - **No `sm:`/`md:` classes:** React Email 1.0 with Tailwind 4 inlines them on every screen size (a bug, found 2026-10-08).
+- **Fonts:** plain `@font-face` (Lilita One, Barlow Condensed) with Arial Black and Arial fallbacks.
+  - **Never use React Email's `<Font>`:** it sets `* { font-family }` and put the display face on body text.
+- `color-scheme: light only`.
+- Dynamic values are `{{PLACEHOLDERS}}`, HTML-escaped at send time. An unfilled placeholder throws instead of sending.
+

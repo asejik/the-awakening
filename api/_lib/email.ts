@@ -1,44 +1,65 @@
 import { EVENT } from '../../shared/event.js'
+import { CONFIRMATION_HTML } from './email-template.js'
 import type { Mail } from './mailer.js'
 
-// M1: plain confirmation email. Branded template arrives in M3 (docs/DESIGN.md).
+// HTML comes from emails/Confirmation.tsx (React Email + Tailwind), pre-rendered into
+// email-template.ts by `npm run email:build`. Values are HTML-escaped before insertion.
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 }
 
+/** Absolute site URL for images and the footer. Vercel exposes the production domain at runtime. */
+function siteUrl(): string {
+  if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/$/, '')
+  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  return host ? `https://${host}` : 'http://localhost:3000'
+}
+
+export function fillTemplate(template: string, values: Record<string, string>): string {
+  const html = template.replace(/\{\{([A-Z_]+)\}\}/g, (match, key: string) =>
+    key in values ? escapeHtml(values[key]) : match,
+  )
+  const left = html.match(/\{\{[A-Z_]+\}\}/)
+  if (left) throw new Error(`email template placeholder not filled: ${left[0]}`)
+  return html
+}
+
 export function confirmationEmail(to: string, fullName: string, code: string, resend: boolean): Mail {
   const firstName = fullName.trim().split(/\s+/)[0] ?? ''
+  const heading = resend ? `You're already registered, ${firstName}!` : `You're plugged in, ${firstName}!`
   const intro = resend
-    ? `You're already registered for ${EVENT.name}. Here's your raffle code again.`
-    : `You're plugged in for ${EVENT.name}! Here's your raffle code.`
-  const details = [
-    ...EVENT.days.map((d) => `${d.label}: ${d.weekday}, ${d.date} · ${d.time}`),
-    EVENT.venue,
-  ]
+    ? `Here's your raffle code for ${EVENT.name} again. You only need to register once.`
+    : `You're registered for ${EVENT.name}. Here's your raffle ticket for the prize draw at the event.`
+  const url = siteUrl()
+
+  const html = fillTemplate(CONFIRMATION_HTML, {
+    PREVIEW: `Your raffle code is ${code}. ${EVENT.days.map((d) => `${d.date} ${d.time}`).join(' & ')}.`,
+    HEADING: heading,
+    INTRO: intro,
+    FULL_NAME: fullName,
+    CODE: code,
+    SITE_URL: url,
+  })
 
   const text = [
-    `Hi ${firstName},`,
+    heading,
     '',
     intro,
     '',
+    `RAFFLE TICKET: ${fullName}`,
     `YOUR RAFFLE CODE: ${code}`,
     '',
-    ...details,
+    ...EVENT.days.map((d) => `${d.label}: ${d.weekday}, ${d.date} · ${d.time}`),
+    `Venue: ${EVENT.venue}`,
     '',
-    'Keep this email. You will need your code if you win the raffle draw.',
+    "Keep this email or screenshot your ticket. You'll need your code if you win the raffle draw.",
     '',
     'See you there!',
     EVENT.host,
+    '',
+    `You're receiving this because you registered for ${EVENT.name} at ${url}.`,
   ].join('\n')
-
-  const html = `<p>Hi ${escapeHtml(firstName)},</p>
-<p>${escapeHtml(intro)}</p>
-<p style="font-size:14px;letter-spacing:.1em;margin:0">YOUR RAFFLE CODE</p>
-<p style="font-size:40px;font-weight:bold;letter-spacing:.12em;margin:4px 0 16px">${escapeHtml(code)}</p>
-<p>${details.map(escapeHtml).join('<br>')}</p>
-<p>Keep this email. You will need your code if you win the raffle draw.</p>
-<p>See you there!<br>${escapeHtml(EVENT.host)}</p>`
 
   return { to, subject: `Your ${EVENT.name} raffle code: ${code}`, text, html }
 }

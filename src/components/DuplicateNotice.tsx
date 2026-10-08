@@ -12,7 +12,7 @@ export function DuplicateNotice() {
       <div className="mx-auto max-w-[440px]">
         <picture className="mx-auto block w-[180px]">
           <source srcSet="/assets/title.webp" type="image/webp" />
-          <img src="/assets/title.png" alt={EVENT.name} width={720} height={562} className="h-auto w-full" />
+          <img src="/assets/title.png" alt={EVENT.name} width={640} height={500} className="h-auto w-full" />
         </picture>
         <div className="mx-auto mt-6 max-w-[340px] bg-maroon p-5 text-center text-cream shadow-panel">
           <MailCheck aria-hidden size={36} strokeWidth={2} className="mx-auto" />

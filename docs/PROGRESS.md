@@ -102,3 +102,16 @@
 - **Checks:** 73 tests; JS 111.52 KB gzipped.
 - **Builder actions:** run 002 on TEST; re-paste Code.gs; add `ALERT_EMAIL`; re-run `installTrigger`; run `dailyDigest` once to see the email.
 - **Next:** M3 (branding: poster hero, ticket motion, OG image, HTML email).
+
+## 2026-10-08 · M3 branding: built, awaiting builder sign-off (FEATURE)
+- **Changed:**
+  - Poster hero: starburst, rotating DAY 1/2 badges, title, Freshers panel, full-venue panel, Featuring strip, "Register free" button that scrolls to and focuses the form
+  - Ticket entrance and ENTERED! stamp motion (reduced-motion safe)
+  - OG/Twitter tags plus `public/og.jpg` (1200×630); the site URL comes from Vercel at build time
+  - **Full HTML responsive email** (React Email + Tailwind → inlined template, fluid layout, ticket design, plain-text version kept)
+- **Performance work:** self-hosted fonts; the form is lazy-loaded after the hero; build-time prerender plus hydration; CSS inlined; title image at 640px; `robots.txt`.
+- **Lighthouse mobile** (production build, 3 runs): Performance 75 / 93 / 93 (one CPU-noise outlier); Accessibility 100; Best Practices 100; SEO 100. LCP 2.8s, CLS 0.015.
+- **JS:** main 75 KB gzipped; the form chunk (zod + react-hook-form) 39 KB gzipped, loaded after first paint.
+- **Checks:** 80 tests (9 files). End-to-end against TEST: ticket, duplicate (no code), offline banner, no console errors.
+- **Found:** React Email Tailwind applies `sm:` everywhere, and `<Font>` overrides all text; both are avoided (DESIGN.md §11).
+- **Next:** builder sign-off on the screenshots; one real email to Gmail (images show once main is deployed); then M4.

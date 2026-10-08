@@ -7,11 +7,12 @@
     "dev": "vite",
     "dev:full": "node --env-file=.env.local scripts/dev-server.mjs",
     "dev:vercel": "vercel dev",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
     "typecheck": "tsc -b",
     "lint": "oxlint",
     "test": "vitest run --passWithNoTests",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "email:build": "tsx --tsconfig tsconfig.emails.json scripts/build-email.tsx"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -26,6 +27,8 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.1.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.19.1",
     "@types/nodemailer": "^8.0.2",
@@ -35,6 +38,7 @@
     "@vitejs/plugin-react": "^6.1.2",
     "oxlint": "^1.87.0",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.2",
     "vite": "^8.3.4",
     "vitest": "^5.0.3"

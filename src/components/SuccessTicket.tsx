@@ -4,7 +4,7 @@ import { EVENT } from '../../shared/event'
 
 type Props = { code: string; fullName: string }
 
-/** The raffle ticket (DESIGN.md §7). Static in M2; the stamp/entrance motion arrives in M3. */
+/** The raffle ticket (DESIGN.md §7): settles in, then the ENTERED! stamp lands (§6 item 5). */
 export function SuccessTicket({ code, fullName }: Props) {
   const headingRef = useRef<HTMLHeadingElement>(null)
   useEffect(() => headingRef.current?.focus(), [])
@@ -19,7 +19,7 @@ export function SuccessTicket({ code, fullName }: Props) {
       <div className="relative mx-auto max-w-[440px]">
         <picture className="mx-auto block w-[180px]">
           <source srcSet="/assets/title.webp" type="image/webp" />
-          <img src="/assets/title.png" alt={EVENT.name} width={720} height={562} className="h-auto w-full" />
+          <img src="/assets/title.png" alt={EVENT.name} width={640} height={500} className="h-auto w-full" />
         </picture>
 
         <h1 ref={headingRef} tabIndex={-1} className="mt-3 text-center font-display text-h2 text-ink outline-none">
@@ -27,7 +27,7 @@ export function SuccessTicket({ code, fullName }: Props) {
         </h1>
         <p className="mt-2 text-center font-text text-lead text-ink">Here's your raffle ticket. We've emailed it to you too.</p>
 
-        <div className="relative mx-auto mt-5 w-full max-w-[300px] rounded-xl border-ink-thick bg-cream shadow-hard-lg">
+        <div className="relative mx-auto mt-5 w-full max-w-[300px] animate-ticket-in rounded-xl border-ink-thick bg-cream shadow-hard-lg">
           <div className="flex items-center rounded-t-[14px] bg-maroon px-3.5 py-2.5 font-text text-[14px] font-bold uppercase tracking-[0.1em] text-cream">
             Raffle ticket
           </div>
@@ -61,7 +61,7 @@ export function SuccessTicket({ code, fullName }: Props) {
           </dl>
           <span
             aria-hidden
-            className="absolute -right-2.5 -top-4 rotate-[14deg] rounded-sm border-[3px] border-ember-700 bg-cream/85 px-2 py-0.5 font-display text-[18px] text-ember-700"
+            className="absolute -right-2.5 -top-4 animate-stamp-in rounded-sm [transform:rotate(14deg)] border-[3px] border-ember-700 bg-cream/85 px-2 py-0.5 font-display text-[18px] text-ember-700"
           >
             ENTERED!
           </span>
