@@ -1,5 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { defineConfig, type Plugin } from 'vite'
 import { EVENT } from './shared/event.js'
 
@@ -8,6 +10,13 @@ import { EVENT } from './shared/event.js'
 function siteUrl(): string {
   const host = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL
   return host ? `https://${host}` : 'http://localhost:3000'
+}
+
+/** Content fingerprint for og.jpg: Facebook/WhatsApp cache preview images by URL, so a new image
+ *  needs a new URL (found when the event was rescheduled and the old image stuck). */
+function ogImageUrl(url: string): string {
+  const hash = createHash('sha256').update(readFileSync('public/og.jpg')).digest('hex').slice(0, 10)
+  return `${url}/og.jpg?v=${hash}`
 }
 
 /** Event JSON-LD (P08 SEO-01). Every field mirrors visible content in shared/event.ts; nothing invented. */
@@ -22,7 +31,7 @@ function eventJsonLd(url: string): string {
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     eventStatus: 'https://schema.org/EventScheduled',
     isAccessibleForFree: true,
-    image: [`${url}/og.jpg`],
+    image: [ogImageUrl(url)],
     url: `${url}/`,
     location: {
       '@type': 'Place',
@@ -45,7 +54,7 @@ const seo = (): Plugin => ({
   name: 'site-seo',
   transformIndexHtml: (html, ctx) => {
     const url = siteUrl()
-    let out = html.replaceAll('%SITE_URL%', url)
+    let out = html.replaceAll('%OG_IMAGE%', ogImageUrl(url)).replaceAll('%SITE_URL%', url)
     if (ctx.path === '/index.html') out = out.replace('</head>', `    ${eventJsonLd(url)}\n  </head>`)
     return out
   },

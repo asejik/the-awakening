@@ -168,3 +168,7 @@
 - Error correction H; The Awakening logo on a cream plate in the centre (about 12% of the area); finder eyes in maroon and ember.
 - Decoded successfully (jsQR) at 2520, 1500, 1000, 600, 300, 200 and 140px, plus a blurred, rotated "phone photo" copy.
 - For a new event: regenerate with the `qrcode` npm package (level H) and the same layout.
+
+## 2026-10-08 · GO LIVE (sign-off 2) + preview cache fix
+- **Builder signed off: go live.**
+- **Facebook/WhatsApp kept the old preview image** (old dates) even after Scrape Again, because they cache images by URL. `og:image` (and the JSON-LD image) is now `og.jpg?v=<content hash>`, generated at build, so any future image change gets a new URL automatically.
