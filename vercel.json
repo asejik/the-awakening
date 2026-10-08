@@ -1,7 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": [
+    "lhr1"
+  ],
   "functions": {
-    "api/register.ts": { "maxDuration": 30 },
-    "api/email-retry.ts": { "maxDuration": 60 }
+    "api/register.ts": {
+      "maxDuration": 30
+    },
+    "api/email-retry.ts": {
+      "maxDuration": 60
+    }
   }
 }
