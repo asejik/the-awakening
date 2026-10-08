@@ -86,3 +86,8 @@
 - **Browser run against TEST:** empty submit focused the first field; a real submit gave a ticket; a duplicate showed no code; offline showed the banner and kept the answers; no console errors.
 - **Requirement noted for M3:** branded email must be full HTML/CSS and responsive; Tailwind only if compiled to inline styles.
 - **Next:** builder reviews screenshots (P06 step 4) and tests on a real Android phone. Then P03 (mid-project), then M3.
+
+## 2026-10-08 · M2 review fixes + P03 mid-project audit
+- **Builder review:** venue is now shown in full ("Freedom Dome, Ilesanmi Bus Stop, Tanke, Ilorin"); the church logo is used exactly as supplied (no extra text label). Builder will do real-phone checks at the end of the build.
+- **P03 MID:** `docs/audits/P03_2026-10-08.md`. Verdict: **READY WITH FIXES**, no blockers to continuing. High: no alerting (P03-01). Medium: SMTP timeouts, log mode in production, bundle at 93% of budget.
+- **Next:** builder approves the fix batch, then M3.
