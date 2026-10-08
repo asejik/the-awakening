@@ -29,7 +29,7 @@ const person = (i, phone = '090' + rand(8)) => ({
   department: 'Load Test',
   phone,
   email: `loadtest-${run}-${i}@example.invalid`,
-  needs_transport: false,
+  needs_transport: 'No',
   consent: true,
   age_confirmed: true,
   source: 'loadtest',

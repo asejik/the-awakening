@@ -73,3 +73,16 @@
 - **Config:** `vercel.json` `regions: ["lhr1"]`. The dashboard region setting hadn't applied (functions were running in `iad1`).
 - **Not tested:** Yahoo and Outlook inboxes (the builder has no accounts). Test with a church member's address before launch (M5).
 - **Next:** M2, the real form (zod schema, conditional fields, busy/duplicate/error states). Delete `spike.html`. Clear TEST data first.
+
+## 2026-10-08 · M2 real form: built, awaiting builder review (FEATURE)
+- **Changed:**
+  - One zod schema (`shared/registration.ts`) shared by the form and `/api/register`. Plain-English messages; conditional rules (Other institution; bus → area and address); `toPayload()` normalises.
+  - `shared/event.ts` holds the event content. Institutions are **University of Ilorin + Other only** (builder decision).
+  - Form built with Direction A components: text, native select, segmented radios, checkboxes, sticker button.
+  - States: field errors with focus on the first one, server field errors, submitting, slow after 8s, offline and error banners that keep the answers.
+  - Success ticket (full name + code + stub, static) and the duplicate notice (no code).
+  - `?src=` tag saved. `spike.html` deleted. TEST data cleared (116 rows).
+- **Checks:** 57 tests; JS 111 KB gzipped (budget 120).
+- **Browser run against TEST:** empty submit focused the first field; a real submit gave a ticket; a duplicate showed no code; offline showed the banner and kept the answers; no console errors.
+- **Requirement noted for M3:** branded email must be full HTML/CSS and responsive; Tailwind only if compiled to inline styles.
+- **Next:** builder reviews screenshots (P06 step 4) and tests on a real Android phone. Then P03 (mid-project), then M3.

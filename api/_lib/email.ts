@@ -1,3 +1,4 @@
+import { EVENT } from '../../shared/event.js'
 import type { Mail } from './mailer.js'
 
 // M1: plain confirmation email. Branded template arrives in M3 (docs/DESIGN.md).
@@ -9,12 +10,11 @@ function escapeHtml(s: string): string {
 export function confirmationEmail(to: string, fullName: string, code: string, resend: boolean): Mail {
   const firstName = fullName.trim().split(/\s+/)[0] ?? ''
   const intro = resend
-    ? `You're already registered for The Awakening. Here's your raffle code again.`
-    : `You're plugged in for The Awakening! Here's your raffle code.`
+    ? `You're already registered for ${EVENT.name}. Here's your raffle code again.`
+    : `You're plugged in for ${EVENT.name}! Here's your raffle code.`
   const details = [
-    'Day 1: Saturday, Oct 24 · 4PM',
-    'Day 2: Sunday, Oct 25 · 9AM',
-    'Freedom Dome, Ilesanmi Bus Stop, University Road, Tanke, Ilorin',
+    ...EVENT.days.map((d) => `${d.label}: ${d.weekday}, ${d.date} · ${d.time}`),
+    `${EVENT.venue.name}, ${EVENT.venue.address}`,
   ]
 
   const text = [
@@ -29,7 +29,7 @@ export function confirmationEmail(to: string, fullName: string, code: string, re
     'Keep this email. You will need your code if you win the raffle draw.',
     '',
     'See you there!',
-    'Citizens of Light Church',
+    EVENT.host,
   ].join('\n')
 
   const html = `<p>Hi ${escapeHtml(firstName)},</p>
@@ -38,7 +38,7 @@ export function confirmationEmail(to: string, fullName: string, code: string, re
 <p style="font-size:40px;font-weight:bold;letter-spacing:.12em;margin:4px 0 16px">${escapeHtml(code)}</p>
 <p>${details.map(escapeHtml).join('<br>')}</p>
 <p>Keep this email. You will need your code if you win the raffle draw.</p>
-<p>See you there!<br>Citizens of Light Church</p>`
+<p>See you there!<br>${escapeHtml(EVENT.host)}</p>`
 
-  return { to, subject: `Your Awakening raffle code: ${code}`, text, html }
+  return { to, subject: `Your ${EVENT.name} raffle code: ${code}`, text, html }
 }

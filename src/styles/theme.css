@@ -65,3 +65,20 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Ink borders from DESIGN.md §5 (2.5px isn't on Tailwind's integer border scale). */
+@utility border-ink {
+  border: var(--border-ink) solid var(--color-ink);
+}
+@utility border-ink-thick {
+  border: var(--border-ink-thick) solid var(--color-ink);
+}
+
+/* Revealed fields (bus → area/address, institution → Other): DESIGN.md §6 item 3. */
+@utility reveal {
+  animation: reveal var(--dur-base) var(--ease-out) both;
+}
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}

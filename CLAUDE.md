@@ -32,7 +32,8 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
 
 ## Layout
 
-- `src/`: React SPA. Tokens are in `src/styles/theme.css`, mirroring docs/DESIGN.md §9.
+- `src/`: React SPA. Tokens are in `src/styles/theme.css`, mirroring docs/DESIGN.md §9; custom utilities `border-ink`, `border-ink-thick`, `reveal` live there too. Form controls are in `src/components/form/`.
+- `shared/`: code used by both the page and `api/`: `registration.ts` (the one zod schema plus `toPayload`), `event.ts` (event content), `phone.ts`.
 - `api/`: Vercel Functions (Node, `@vercel/node` types)
 - `apps-script/Code.gs`: pasted by hand into each event Sheet's Apps Script editor. It isn't deployed from this repo.
 - `public/assets/`: optimised images actually shipped
@@ -50,7 +51,7 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
   - `phone` and `code` are written with a leading `'`, because Sheets drops leading zeros and turns `2E45` into a number (found in M1).
   - Prefix values starting with `= + - @` with `'`.
 - **No secrets in `VITE_` variables.** `VITE_` variables are compiled into the bundle. The secrets are `SUPABASE_SECRET_KEY`, `SMTP_USER`, `SMTP_PASS`, `RETRY_SECRET` and `DRAW_PASSPHRASE`, and they stay server-side.
-- **Reuse:** event content lives in `src/config/event.ts`, plus env vars (`EVENT_SLUG`, open/close times). Every table has an `event` column; each event gets its own Sheet.
+- **Reuse:** event content lives in `shared/event.ts` (used by page and server), plus env vars (`EVENT_SLUG`, open/close times). Every table has an `event` column; each event gets its own Sheet.
 - **Environments:** local and Preview use the TEST Supabase project, TEST Sheet and `EMAIL_MODE=log`. Production uses LIVE with `EMAIL_MODE=smtp`. Migrations run on TEST first, then LIVE.
 
 ## Visual identity (full system in `docs/DESIGN.md`; source artwork in `brand/`)

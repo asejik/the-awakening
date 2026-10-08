@@ -32,7 +32,7 @@ async function call(body: unknown, method = 'POST') {
 const valid = {
   full_name: 'Tolulope Adeyemi', gender: 'Female', institution: 'University of Ilorin',
   department: 'Law', phone: '+234 801 234 5678', email: 'Tolu@Example.com',
-  needs_transport: false, consent: true, age_confirmed: true,
+  needs_transport: 'No', consent: true, age_confirmed: true,
 }
 
 beforeEach(() => {
@@ -57,12 +57,16 @@ describe('POST /api/register', () => {
   it('rejects invalid input with the failing fields', async () => {
     const res = await call({ ...valid, phone: '123', consent: false })
     expect(res.statusCode).toBe(400)
-    expect(res.body).toEqual({ status: 'invalid', fields: ['phone', 'consent'] })
+    expect(res.body).toEqual({
+      status: 'invalid',
+      fields: { phone: 'Enter an 11-digit number, e.g. 08012345678', consent: 'You need to agree to register' },
+    })
+    expect(registerAttendee).not.toHaveBeenCalled()
   })
 
   it('normalises phone and email and sends booleans to the database', async () => {
     registerAttendee.mockResolvedValue({ status: 'created', id: 'r1', code: 'K7QX' })
-    await call({ ...valid, needs_transport: true, area: 'Tanke', address: 'Block C' })
+    await call({ ...valid, needs_transport: 'Yes', area: 'Tanke', address: 'Block C' })
     expect(registerAttendee).toHaveBeenCalledWith('awakening-2026', expect.objectContaining({
       phone: '08012345678', email: 'tolu@example.com', needs_transport: true, area: 'Tanke', age_confirmed: true,
     }))

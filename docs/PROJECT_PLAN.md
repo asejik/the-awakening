@@ -262,7 +262,7 @@ The original design (an Apps Script web app with a Sheet lock) was dropped after
 **Pausing:** Supabase Free pauses inactive projects. It doesn't matter during registration. For reuse at a later event, resume the project first (that's in `SETUP_NEW_EVENT.md`).
 
 ### Reuse design
-- `src/config/event.ts` holds everything specific to the event:
+- `shared/event.ts` holds everything specific to the event (used by the page and the server):
   - name, tagline, dates, venue, programme
   - institution list, colours, artwork paths
   - email subject and body copy
@@ -543,7 +543,7 @@ Riskiest first. Every milestone deploys.
 - Fonts and colour tokens from the flyer
 - Event details section
 - Success-screen design
-- Branded email template
+- Branded email template: **full HTML/CSS, responsive on every screen size** (builder requirement 2026-10-08). Tailwind is welcome as an authoring tool, but email clients ignore class-based CSS, so it has to be compiled to inline styles (e.g. a React Email + Tailwind setup that inlines at build time). Test in Gmail (Android app and web) at minimum.
 
 **Done when:**
 - [ ] The church contact approves screenshots of the form and success screen (**client sign-off 1**)

@@ -1,52 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { waitUntil } from '@vercel/functions'
-import { normalizeNigerianPhone } from '../shared/phone.js'
-import { registerAttendee, type RegisterPayload } from './_lib/db.js'
+import { fieldErrors, registrationSchema, toPayload } from '../shared/registration.js'
+import { registerAttendee } from './_lib/db.js'
 import { sendConfirmation } from './_lib/send-confirmation.js'
 
-// M1: minimal validation. M2 replaces it with the shared zod schema.
-
 const REQUIRED_ENV = ['SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'EVENT_SLUG', 'EMAIL_MODE'] as const
-
-function str(v: unknown, max: number): string {
-  return typeof v === 'string' ? v.trim().slice(0, max) : ''
-}
-
-function validate(body: Record<string, unknown>): { payload?: RegisterPayload; errors: string[] } {
-  const errors: string[] = []
-  const full_name = str(body.full_name, 80)
-  const email = str(body.email, 120).toLowerCase()
-  const phone = normalizeNigerianPhone(str(body.phone, 30))
-  const gender = str(body.gender, 10)
-
-  if (full_name.length < 2) errors.push('full_name')
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('email')
-  if (!phone) errors.push('phone')
-  if (gender !== 'Male' && gender !== 'Female') errors.push('gender')
-  if (body.consent !== true) errors.push('consent')
-  if (body.age_confirmed !== true) errors.push('age_confirmed')
-  if (errors.length) return { errors }
-
-  const needsTransport = body.needs_transport === true
-  return {
-    errors,
-    payload: {
-      full_name,
-      gender,
-      institution: str(body.institution, 80),
-      institution_other: str(body.institution_other, 80),
-      department: str(body.department, 80),
-      phone: phone!,
-      email,
-      needs_transport: needsTransport,
-      area: needsTransport ? str(body.area, 60) : '',
-      address: needsTransport ? str(body.address, 200) : '',
-      followup_optin: body.followup_optin === true,
-      age_confirmed: true,
-      source: str(body.source, 40),
-    },
-  }
-}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ status: 'method_not_allowed' })
@@ -54,9 +12,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(503).json({ status: 'unavailable' })
   }
 
-  const body = (typeof req.body === 'object' && req.body) || {}
-  const { payload, errors } = validate(body as Record<string, unknown>)
-  if (!payload) return res.status(400).json({ status: 'invalid', fields: errors })
+  // Same schema as the page; never trust the browser's validation.
+  const parsed = registrationSchema.safeParse(typeof req.body === 'object' && req.body ? req.body : {})
+  if (!parsed.success) return res.status(400).json({ status: 'invalid', fields: fieldErrors(parsed.error) })
+  const payload = toPayload(parsed.data)
 
   const started = Date.now()
   try {
