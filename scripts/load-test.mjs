@@ -40,11 +40,19 @@ async function post(body) {
     const json = await r.json().catch(() => ({}))
     return { http: r.status, status: json.status, code: json.code, ms: Date.now() - t }
   } catch (err) {
-    return { http: 0, status: 'network:' + err.name, ms: Date.now() - t }
+    return { http: 0, status: 'network:' + (err.cause?.code ?? err.name), ms: Date.now() - t }
   }
 }
 
 const pct = (sorted, p) => sorted[Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1)]
+
+// Fail fast if nothing is serving the URL (e.g. `vercel dev` not ready).
+try {
+  await fetch(new URL('/api/health', url), { signal: AbortSignal.timeout(5000), headers: bypass ? { 'x-vercel-protection-bypass': bypass } : {} })
+} catch (err) {
+  console.error(`Can't reach ${new URL('/api/health', url)} (${err.cause?.code ?? err.name}). Is \`npm run dev:full\` running and showing "Ready"?`)
+  process.exit(1)
+}
 
 console.log(`Run ${run}: ${n} parallel registrations → ${url}`)
 const results = await Promise.all(Array.from({ length: n }, (_, i) => post(person(i))))
