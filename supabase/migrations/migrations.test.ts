@@ -27,9 +27,11 @@ beforeAll(async () => {
 }, 60_000)
 
 beforeEach(async () => {
-  // Fresh schema per test: roll back, then migrate (also proves the pair round-trips).
+  // Fresh schema per test: roll back, then migrate (also proves the pairs round-trip).
+  await db.exec('drop function if exists public.ops_summary(text)') // 002 object outlives 001's down
   await db.exec(sql('001_registrations.down.sql'))
   await db.exec(sql('001_registrations.sql'))
+  await db.exec(sql('002_ops.sql'))
 })
 
 describe('001_registrations', () => {
@@ -121,7 +123,41 @@ describe('001_registrations', () => {
     expect(rls).toBe(true)
   })
 
+  it('002: a claimed retry row is not handed to an overlapping run', async () => {
+    const r = await register(person('08011111111', 'f@example.com'))
+    await db.query(`update public.registrations set email_status = 'FAILED' where id = $1`, [r.id])
+    expect(await rpc(`select id from public.email_retry_batch('awakening-2026')`)).toHaveLength(1)
+    expect(await rpc(`select id from public.email_retry_batch('awakening-2026')`)).toHaveLength(0)
+    await db.query(`update public.registrations set retry_claimed_at = now() - interval '6 minutes' where id = $1`, [r.id])
+    expect(await rpc(`select id from public.email_retry_batch('awakening-2026')`)).toHaveLength(1)
+  })
+
+  it('002: ops_summary counts what the alerts need', async () => {
+    const a = await register(person('08011111111', 'a@example.com'))
+    const b = await register(person('08022222222', 'b@example.com'))
+    await register(person('08033333333', 'c@example.com'))
+    await db.query(`update public.registrations set email_status = 'FAILED', email_attempts = 5 where id = $1`, [a.id])
+    await db.query(`update public.registrations set email_status = 'SENT', sheet_synced_at = now() where id = $1`, [b.id])
+    await db.query(`update public.registrations set created_at = now() - interval '40 minutes' where id = $1`, [a.id])
+    const [{ s }] = await rpc<{ s: Record<string, number> }>(`select public.ops_summary('awakening-2026') as s`)
+    expect(s).toMatchObject({ total: 3, unsynced: 2, exhausted: 1, failed: 0, sent: 1, logged: 0 })
+    expect(s.unsynced_oldest_minutes).toBeGreaterThanOrEqual(40)
+    const [{ anon_exec }] = await rpc<{ anon_exec: boolean }>(
+      `select has_function_privilege('anon', 'public.ops_summary(text)', 'execute') as anon_exec`)
+    expect(anon_exec).toBe(false)
+  })
+
+  it('002 rolls back to 001 behaviour', async () => {
+    await db.exec(sql('002_ops.down.sql'))
+    const cols = await rpc(`select 1 from information_schema.columns where table_name = 'registrations' and column_name = 'retry_claimed_at'`)
+    expect(cols).toHaveLength(0)
+    const r = await register(person('08011111111', 'f@example.com'))
+    await db.query(`update public.registrations set email_status = 'FAILED' where id = $1`, [r.id])
+    expect(await rpc(`select id from public.email_retry_batch('awakening-2026')`)).toHaveLength(1)
+  })
+
   it('rolls back cleanly', async () => {
+    await db.exec(sql('002_ops.down.sql'))
     await db.exec(sql('001_registrations.down.sql'))
     const [{ n }] = await rpc<{ n: number }>(`select count(*)::int as n from pg_tables where tablename = 'registrations'`)
     expect(n).toBe(0)

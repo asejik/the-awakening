@@ -91,3 +91,14 @@
 - **Builder review:** venue is now shown in full ("Freedom Dome, Ilesanmi Bus Stop, Tanke, Ilorin"); the church logo is used exactly as supplied (no extra text label). Builder will do real-phone checks at the end of the build.
 - **P03 MID:** `docs/audits/P03_2026-10-08.md`. Verdict: **READY WITH FIXES**, no blockers to continuing. High: no alerting (P03-01). Medium: SMTP timeouts, log mode in production, bundle at 93% of budget.
 - **Next:** builder approves the fix batch, then M3.
+
+## 2026-10-08 · P03 fix batch (AUDIT FIX: P03-01, 02, 03, 05, 06, 07, 10, 11)
+- **Changed:**
+  - Migration `002_ops.sql` (+ down): `retry_claimed_at`; claiming `email_retry_batch`; `ops_summary`
+  - `api/_lib/config.ts`: startup checks; no log mode in production; slug format; `scrub()`
+  - SMTP timeouts
+  - Apps Script alerts plus a daily digest to `ALERT_EMAIL`
+  - Plan and client-questions updates; vite 8.3.4
+- **Checks:** 73 tests; JS 111.52 KB gzipped.
+- **Builder actions:** run 002 on TEST; re-paste Code.gs; add `ALERT_EMAIL`; re-run `installTrigger`; run `dailyDigest` once to see the email.
+- **Next:** M3 (branding: poster hero, ticket motion, OG image, HTML email).

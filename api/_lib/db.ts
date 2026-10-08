@@ -28,7 +28,7 @@ export type RegisterResult =
 export type EmailStatus = 'SENT' | 'FAILED' | 'LOGGED'
 export type RetryRow = { id: string; email: string; full_name: string; code: string }
 
-export class DbError extends Error {}
+class DbError extends Error {}
 
 let client: SupabaseClient | undefined
 

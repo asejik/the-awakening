@@ -11,6 +11,10 @@ function getTransporter(): Transporter {
       port: 465,
       secure: true,
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      // nodemailer defaults are minutes long; a hung Gmail connection must not hold a function (P03-02).
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 20_000,
     })
   }
   return transporter

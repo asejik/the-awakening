@@ -5,11 +5,14 @@
  * Supabase is the system of record (docs/PROJECT_PLAN.md, Revision 2). This script only:
  *   - copies new registrations into the Sheet every 5 minutes (and on "Awakening → Sync now")
  *   - pings /api/email-retry so failed confirmation emails are re-sent
+ *   - emails ALERT_EMAIL a daily summary at 7am, and an alert when something is wrong (P03-01)
  *
  * Setup (once per Sheet):
  *   1. Project Settings → Script Properties:
  *        SUPABASE_URL, SUPABASE_SECRET_KEY, EVENT_SLUG
  *        RETRY_URL, RETRY_SECRET   (optional; skipped when unset)
+ *        ALERT_EMAIL               (optional; who gets the summary and alerts)
+ *        IS_LIVE = true            (LIVE Sheet only: alerts if any email was only logged)
  *   2. Run setupSheet, then installTrigger (approve the permission prompts).
  */
 
@@ -27,6 +30,7 @@ var TABS = {
 // "08012345678" and turns a code like "2E45" into a number (found in M1).
 var FORCE_TEXT = { phone: true, code: true };
 var SYNC_BATCH = 500;
+var ALERT_REPEAT_SECONDS = 21600; // the same alert at most every 6 hours
 
 /** Creates or checks the tabs and headers. Safe to re-run. */
 function setupSheet() {
@@ -55,12 +59,14 @@ function setupSheet() {
   if (blank && blank.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(blank);
 }
 
-/** Runs syncFromSupabase every 5 minutes. Re-running replaces the old trigger. */
+/** Sync every 5 minutes; daily summary around 7am. Re-running replaces the old triggers. */
 function installTrigger() {
   ScriptApp.getProjectTriggers().forEach(function (t) {
-    if (t.getHandlerFunction() === 'syncFromSupabase') ScriptApp.deleteTrigger(t);
+    var fn = t.getHandlerFunction();
+    if (fn === 'syncFromSupabase' || fn === 'dailyDigest') ScriptApp.deleteTrigger(t);
   });
   ScriptApp.newTrigger('syncFromSupabase').timeBased().everyMinutes(5).create();
+  ScriptApp.newTrigger('dailyDigest').timeBased().everyDays(1).atHour(7).create();
 }
 
 function onOpen() {
@@ -109,12 +115,73 @@ function syncFromSupabase() {
     }
 
     pingRetry_();
+    checkAlerts_();
     return copied;
   } catch (err) {
     log_('error', 'syncFromSupabase', String(err));
+    alert_('sync-failing', 'Sheet sync is failing',
+      'The Google Sheet copy could not sync from Supabase. Registration itself is unaffected.\n\nError: ' + String(err));
     throw err;
   } finally {
     lock.releaseLock();
+  }
+}
+
+/** Emails ALERT_EMAIL when something needs a human (P03-01). */
+function checkAlerts_() {
+  var props = PropertiesService.getScriptProperties();
+  if (!props.getProperty('ALERT_EMAIL')) return;
+  var s = rpc_('ops_summary', { p_event: props.getProperty('EVENT_SLUG') });
+  if (s.exhausted > 0) {
+    alert_('emails-exhausted', s.exhausted + ' confirmation email(s) failed 5 times',
+      'These registrants never received their code by email (they did see it on screen). ' +
+      'Check the Gmail account and SMTP_PASS, then reset email_attempts to 0 for those rows in Supabase to retry.');
+  }
+  if (s.failed >= 10) {
+    alert_('emails-failing', s.failed + ' confirmation emails are failing',
+      'Gmail may have hit its daily limit or the app password changed. They will keep retrying every 5 minutes.');
+  }
+  if (s.unsynced_oldest_minutes > 30) {
+    alert_('sync-stalled', 'Sheet copy is ' + s.unsynced_oldest_minutes + ' minutes behind',
+      s.unsynced + ' registration(s) are not in the Sheet yet. Try Awakening → Sync now; check the Log tab.');
+  }
+  if (props.getProperty('IS_LIVE') === 'true' && s.logged > 0) {
+    alert_('logged-in-live', 'LIVE emails are in log mode',
+      s.logged + ' registration(s) on LIVE had their email only logged, not sent. Set EMAIL_MODE=smtp in Vercel Production.');
+  }
+}
+
+/** Daily summary at about 7am (trigger from installTrigger). */
+function dailyDigest() {
+  var props = PropertiesService.getScriptProperties();
+  var to = props.getProperty('ALERT_EMAIL');
+  if (!to) return;
+  var s = rpc_('ops_summary', { p_event: props.getProperty('EVENT_SLUG') });
+  MailApp.sendEmail(to, '[Awakening] Daily summary: ' + s.total + ' registered (+' + s.last_24h + ' in 24h)', [
+    'Event: ' + props.getProperty('EVENT_SLUG'),
+    '',
+    'Total registrations: ' + s.total,
+    'New in the last 24 hours: ' + s.last_24h,
+    '',
+    'Emails sent: ' + s.sent,
+    'Emails failing (still retrying): ' + s.failed,
+    'Emails failed 5 times (need attention): ' + s.exhausted,
+    'Emails only logged (test mode): ' + s.logged,
+    '',
+    'Not yet in the Sheet: ' + s.unsynced,
+  ].join('\n'));
+}
+
+function alert_(key, subject, body) {
+  var to = PropertiesService.getScriptProperties().getProperty('ALERT_EMAIL');
+  if (!to) return;
+  var cache = CacheService.getScriptCache();
+  if (cache.get('alert:' + key)) return;
+  try {
+    MailApp.sendEmail(to, '[Awakening] ' + subject, body);
+    cache.put('alert:' + key, '1', ALERT_REPEAT_SECONDS);
+  } catch (err) {
+    log_('error', 'alert', String(err));
   }
 }
 

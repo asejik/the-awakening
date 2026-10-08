@@ -183,6 +183,7 @@ Ownership: the church. Rows are created only by the server-side `register_attend
 - **`set_email_status(id, status)`:** sets the status and increments `email_attempts`.
 - **`email_retry_batch(event)`:** returns rows that are FAILED, or PENDING for over 10 minutes, with `email_attempts` below 5.
 - **`sheet_pending(event, limit)`** and **`sheet_mark_synced(ids)`:** used by the Sheet mirror.
+- **`ops_summary(event)`** (migration 002): counts for the daily digest and alerts (total, last 24h, unsynced, failed, exhausted, logged, sent). `email_retry_batch` claims its rows (`retry_claimed_at`), so overlapping runs can't double-send.
 
 ### Google Sheet mirror (tab `Registrations`)
 - **Columns:** `id`, `created_at`, `code`, `full_name`, `gender`, `institution`, `institution_other`, `department`, `phone`, `email`, `needs_transport`, `area`, `address`, `consent_at`, `followup_optin`, `age_confirmed`, `source`, `synced_at`.
@@ -446,7 +447,7 @@ N/A: none planned or needed.
   4. Registration closed shows the closed message, and the API returns 403.
   5. (Next) Draw: wrong passphrase is rejected; right passphrase draws an unused code.
 - **Load and spike test (M1):** `scripts/load-test.mjs` sends 50 parallel registrations plus a same-phone race to TEST.
-- **Database tests:** the SQL in `supabase/migrations/` is exercised through the M1 load test against TEST Supabase. `register_attendee` behaviour (duplicates, races, code retry) is checked there.
+- **Database tests:** `supabase/migrations/migrations.test.ts` runs every migration (up and down) in PGlite, an in-process Postgres: duplicates, re-send throttle, code-collision retry, CHECKs, retry claims, `ops_summary`, lockdown. Same-instant races need real connections, so they're covered by the load test against TEST.
 
 **Environments and deployment:**
 - A GitHub repo is connected to Vercel. Pull requests and branches create preview deployments using **TEST** (Supabase project and Sheet); `main` deploys to prod using **LIVE**.
@@ -458,7 +459,8 @@ N/A: none planned or needed.
 **Monitoring:**
 - Vercel function logs (errors and durations)
 - Apps Script executions dashboard and the `Log` tab (sync failures)
-- A daily 2-minute check by the builder: row count in Supabase vs the Sheet, FAILED or PENDING emails, and errors
+- **Daily digest email at about 7am, plus immediate alerts** from the Apps Script to `ALERT_EMAIL` (P03-01): emails failed 5 times, 10+ failing, Sheet copy over 30 min behind, sync failing, or LIVE emails only logged
+- A quick look at Vercel function logs when an alert arrives
 
 **Analytics (tied to success criteria):**
 - Vercel Web Analytics (free tier, verify the limits) for page views, so you can work out conversion = rows ÷ visitors
@@ -569,7 +571,10 @@ Riskiest first. Every milestone deploys.
 **Run P04 + P08 + P03 PRE-LAUNCH first.**
 
 **Tasks:**
-- Run the migrations on LIVE Supabase; set prod env vars; set LIVE Script Properties and `installTrigger()`
+- Run the migrations on LIVE Supabase; set prod env vars; set LIVE Script Properties (including `ALERT_EMAIL` and `IS_LIVE=true`) and `installTrigger()`
+- Check `EVENT_SLUG` is identical in Vercel Production and the LIVE Script Properties (P03-07)
+- Verify what Supabase Free provides for backups; export a CSV and rehearse a restore into TEST (P03-08)
+- Add a `Deletions` tab to the LIVE Sheet (date, row id, requested via, done by) and the procedure to the admin guide (P03-09)
 - Clear any test rows from LIVE (Supabase and Sheet)
 - Share the Sheet with the named leads
 - QR codes with `?src=` tags for outreach

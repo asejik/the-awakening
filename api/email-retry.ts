@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { checkConfig, scrub } from './_lib/config.js'
 import { emailRetryBatch } from './_lib/db.js'
 import { sendConfirmation } from './_lib/send-confirmation.js'
 
@@ -19,10 +20,10 @@ function authorized(header: string | undefined): boolean {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ status: 'method_not_allowed' })
   if (!authorized(req.headers.authorization)) return res.status(401).json({ status: 'unauthorized' })
-  if (!process.env.EVENT_SLUG) return res.status(503).json({ status: 'unavailable' })
+  if (!checkConfig()) return res.status(503).json({ status: 'unavailable' })
 
   try {
-    const rows = await emailRetryBatch(process.env.EVENT_SLUG, BATCH)
+    const rows = await emailRetryBatch(process.env.EVENT_SLUG!, BATCH)
     const outcomes = { SENT: 0, FAILED: 0, LOGGED: 0 }
     for (const r of rows) {
       outcomes[await sendConfirmation(r.id, r.email, r.full_name, r.code, false)]++
@@ -30,7 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log(JSON.stringify({ evt: 'email_retry.done', processed: rows.length, ...outcomes }))
     return res.status(200).json({ status: 'ok', processed: rows.length, ...outcomes })
   } catch (err) {
-    console.error(JSON.stringify({ evt: 'email_retry.error', error: (err as Error).message }))
+    console.error(JSON.stringify({ evt: 'email_retry.error', error: scrub((err as Error).message) }))
     return res.status(502).json({ status: 'error' })
   }
 }

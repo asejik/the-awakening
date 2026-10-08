@@ -16,10 +16,17 @@ function sheetsCoerce(v: unknown): Cell {
 
 type Call = { fn: string; body: Record<string, unknown> }
 
-function load(opts: { pending?: Record<string, string>[]; existingIds?: string[]; retryUrl?: string; failRpc?: string } = {}) {
+type Summary = Partial<Record<'total' | 'last_24h' | 'unsynced' | 'unsynced_oldest_minutes' | 'failed' | 'exhausted' | 'logged' | 'sent', number>>
+
+function load(opts: {
+  pending?: Record<string, string>[]; existingIds?: string[]; retryUrl?: string; failRpc?: string
+  alertEmail?: string; isLive?: boolean; summary?: Summary
+} = {}) {
   const rows: Cell[][] = (opts.existingIds ?? []).map((id) => [id])
   const calls: Call[] = []
   const pings: string[] = []
+  const mails: { to: string; subject: string; body: string }[] = []
+  const cache = new Map<string, string>()
   const sheet = {
     getLastRow: () => rows.length + 1,
     getRange: (row: number, col: number, nr: number, nc: number) => ({
@@ -31,11 +38,15 @@ function load(opts: { pending?: Record<string, string>[]; existingIds?: string[]
   const props: Record<string, string> = {
     SUPABASE_URL: 'https://x.supabase.co', SUPABASE_SECRET_KEY: 'sb_secret_x', EVENT_SLUG: 'awakening-2026',
     ...(opts.retryUrl ? { RETRY_URL: opts.retryUrl, RETRY_SECRET: 'r' } : {}),
+    ...(opts.alertEmail ? { ALERT_EMAIL: opts.alertEmail } : {}),
+    ...(opts.isLive ? { IS_LIVE: 'true' } : {}),
   }
   const response = (code: number, body: unknown) => ({ getResponseCode: () => code, getContentText: () => (body === undefined ? '' : JSON.stringify(body)) })
   const globals = {
     SpreadsheetApp: { getActiveSpreadsheet: () => ({ getSheetByName: () => sheet }), flush: () => {} },
     LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => {} }) },
+    CacheService: { getScriptCache: () => ({ get: (k: string) => cache.get(k) ?? null, put: (k: string, v: string) => cache.set(k, v) }) },
+    MailApp: { sendEmail: (to: string, subject: string, body: string) => mails.push({ to, subject, body }) },
     PropertiesService: { getScriptProperties: () => ({ getProperty: (k: string) => props[k] ?? null }) },
     UrlFetchApp: {
       fetch: (url: string, o: { payload?: string; headers: Record<string, string> }) => {
@@ -44,13 +55,17 @@ function load(opts: { pending?: Record<string, string>[]; existingIds?: string[]
         calls.push({ fn, body: JSON.parse(o.payload ?? '{}') })
         if (fn === opts.failRpc) return response(500, { message: 'boom' })
         if (fn === 'sheet_pending') return response(200, opts.pending ?? [])
+        if (fn === 'ops_summary') return response(200, { total: 0, last_24h: 0, unsynced: 0, unsynced_oldest_minutes: 0, failed: 0, exhausted: 0, logged: 0, sent: 0, ...opts.summary })
         return response(200, 1)
       },
     },
   }
   const src = readFileSync(new URL('./Code.gs', import.meta.url), 'utf8')
-  const fns = new Function(...Object.keys(globals), `${src}; return { syncFromSupabase, TABS };`)(...Object.values(globals))
-  return { sync: fns.syncFromSupabase as () => number | null, headers: fns.TABS.Registrations as string[], rows, calls, pings }
+  const fns = new Function(...Object.keys(globals), `${src}; return { syncFromSupabase, dailyDigest, TABS };`)(...Object.values(globals))
+  return {
+    sync: fns.syncFromSupabase as () => number | null, digest: fns.dailyDigest as () => void,
+    headers: fns.TABS.Registrations as string[], rows, calls, pings, mails,
+  }
 }
 
 const reg = (id: string, extra: Record<string, string> = {}) => ({
@@ -110,5 +125,52 @@ describe('syncFromSupabase (Apps Script)', () => {
     const g = load({ pending: [], retryUrl: 'https://site/api/email-retry' })
     g.sync()
     expect(g.pings).toEqual(['https://site/api/email-retry'])
+  })
+})
+
+describe('alerts and daily digest (P03-01)', () => {
+  it('sends nothing when ALERT_EMAIL is not set', () => {
+    const g = load({ summary: { exhausted: 3 } })
+    g.sync()
+    expect(g.mails).toEqual([])
+    expect(g.calls.map((c) => c.fn)).not.toContain('ops_summary')
+  })
+
+  it('alerts once (not every 5 minutes) when emails are exhausted', () => {
+    const g = load({ alertEmail: 'builder@x.co', summary: { exhausted: 2 } })
+    g.sync(); g.sync(); g.sync()
+    expect(g.mails).toHaveLength(1)
+    expect(g.mails[0]).toMatchObject({ to: 'builder@x.co', subject: '[Awakening] 2 confirmation email(s) failed 5 times' })
+  })
+
+  it('alerts when the Sheet copy is stalled or many emails are failing', () => {
+    const g = load({ alertEmail: 'b@x.co', summary: { unsynced: 4, unsynced_oldest_minutes: 45, failed: 12 } })
+    g.sync()
+    expect(g.mails.map((m) => m.subject).sort()).toEqual([
+      '[Awakening] 12 confirmation emails are failing',
+      '[Awakening] Sheet copy is 45 minutes behind',
+    ])
+  })
+
+  it('flags logged-only emails on LIVE, but not on TEST', () => {
+    const test = load({ alertEmail: 'b@x.co', summary: { logged: 5 } })
+    test.sync()
+    expect(test.mails).toEqual([])
+    const live = load({ alertEmail: 'b@x.co', isLive: true, summary: { logged: 5 } })
+    live.sync()
+    expect(live.mails[0].subject).toBe('[Awakening] LIVE emails are in log mode')
+  })
+
+  it('alerts when the sync itself fails', () => {
+    const g = load({ alertEmail: 'b@x.co', failRpc: 'sheet_pending' })
+    expect(() => g.sync()).toThrow()
+    expect(g.mails[0].subject).toBe('[Awakening] Sheet sync is failing')
+  })
+
+  it('sends a daily summary with the counts', () => {
+    const g = load({ alertEmail: 'b@x.co', summary: { total: 212, last_24h: 37, sent: 205, failed: 2 } })
+    g.digest()
+    expect(g.mails[0].subject).toBe('[Awakening] Daily summary: 212 registered (+37 in 24h)')
+    expect(g.mails[0].body).toContain('Emails failing (still retrying): 2')
   })
 })

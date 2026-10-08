@@ -24,6 +24,9 @@ beforeEach(() => {
   vi.clearAllMocks()
   process.env.RETRY_SECRET = 'retry-secret-value'
   process.env.EVENT_SLUG = 'awakening-2026'
+  process.env.SUPABASE_URL = 'https://x.supabase.co'
+  process.env.SUPABASE_SECRET_KEY = 'sb_secret_x'
+  process.env.EMAIL_MODE = 'log'
   setEmailStatus.mockResolvedValue(null)
 })
 

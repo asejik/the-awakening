@@ -49,7 +49,7 @@ You're welcome to edit it.
 
 **8. Which institutions should be listed in the "Institution" field?**
 *Why it matters:* a list makes the data clean and easy to count. There will always be an "Other" option with a text box.
-*Suggested answer:* **University of Ilorin, Kwara State University, Kwara State Polytechnic, Al-Hikmah University, Other.** Please add or remove as you see fit.
+*Decided (builder, 2026-10-08):* **University of Ilorin, plus "Other" with a text box.** UNILORIN freshers resume at the end of October and are the main audience. Tell us if you'd like other schools listed.
 
 **9. For transport, can we ask "Do you need a pickup bus? Yes/No" and "Area/neighbourhood" alongside the address?**
 *Why it matters:* the transport team will choose central pickup points from this data. Short, consistent area names (for example "Tanke", "Oke-Odo", "School hostel") are much easier to group than full addresses.

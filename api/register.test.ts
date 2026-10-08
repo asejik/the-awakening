@@ -54,6 +54,17 @@ describe('POST /api/register', () => {
     expect(registerAttendee).not.toHaveBeenCalled()
   })
 
+  it('refuses log mode in production instead of silently skipping emails', async () => {
+    process.env.VERCEL_ENV = 'production'
+    try {
+      const res = await call(valid)
+      expect(res.statusCode).toBe(503)
+      expect(registerAttendee).not.toHaveBeenCalled()
+    } finally {
+      delete process.env.VERCEL_ENV
+    }
+  })
+
   it('rejects invalid input with the failing fields', async () => {
     const res = await call({ ...valid, phone: '123', consent: false })
     expect(res.statusCode).toBe(400)
