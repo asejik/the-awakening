@@ -684,7 +684,7 @@ Riskiest first. Every milestone deploys.
 | Institution list (Q8) | Client | UNILORIN, KWASU, Kwara Poly, Al-Hikmah, Other |
 | Pickup-point communication (Q11) | Client | WhatsApp broadcast by Oct 22, done by the church |
 | Turnstile on or off | Builder | Off unless spam appears |
-| Supabase and Vercel function region (match them) | Builder (M1) | London for both, if available |
+| ~~Supabase and Vercel function region~~ | Builder (M1) | **Decided:** Supabase West EU (London), plus `"regions": ["lhr1"]` in `vercel.json` (the dashboard setting alone left functions in `iad1`) |
 
 ---
 

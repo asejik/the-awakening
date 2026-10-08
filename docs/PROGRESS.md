@@ -62,3 +62,14 @@
   - Deleted `api/_lib/gas.ts` and its tests
 - **Tests:** 50 passing, including 11 that run the real migration in PGlite (in-process Postgres): duplicates, re-send throttle, code-collision retry, DB-level validation, retry selection, sheet sync, lockdown, rollback.
 - **Next:** builder runs the migration on TEST, fills `.env.local`, updates the TEST Sheet script. Then the M1 live checks: 50 parallel with p95 under 3s, race, inbox, wrong password, mirror.
+
+## 2026-10-08 · M1 complete: live checks passed (FEATURE + DATABASE)
+- **Results (TEST project):**
+  - **Load:** 50 parallel against a Vercel preview in London, measured from Nigeria: 50/50 created, 50 unique codes, 0 errors, p50 1.7s, **p95 2.8s** (target under 3s). The same run from a local machine was p95 3.4s, because of the 123ms round trip to London.
+  - **Race:** the same phone at the same instant gave one created and one duplicate (passed twice).
+  - **Sheet mirror:** every row was copied once within one trigger cycle. The builder confirmed leading zeros, text codes, no duplicates and the "Sync now" menu.
+  - **Email:** real Gmail reached the inbox (builder). A wrong password gave the code on screen and `FAILED`; after restoring the password, `/api/email-retry` re-sent it → `SENT` (attempt 2).
+  - **Security:** a request without the server key was refused (401); a wrong `RETRY_SECRET` was refused.
+- **Config:** `vercel.json` `regions: ["lhr1"]`. The dashboard region setting hadn't applied (functions were running in `iad1`).
+- **Not tested:** Yahoo and Outlook inboxes (the builder has no accounts). Test with a church member's address before launch (M5).
+- **Next:** M2, the real form (zod schema, conditional fields, busy/duplicate/error states). Delete `spike.html`. Clear TEST data first.
