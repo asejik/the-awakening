@@ -6,9 +6,10 @@
     "types": ["node"],
     "skipLibCheck": true,
 
-    /* Vercel Functions are bundled by Vercel; type-check only */
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    /* Vercel runs api/ as native Node ESM (no bundler), so relative imports need ".js".
+       nodenext makes tsc fail on extensionless imports (production crash found in P04 S-01). */
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,

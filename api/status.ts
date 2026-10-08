@@ -1,9 +1,9 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { ApiRequest, ApiResponse } from './_lib/http.js'
 import { registrationWindow, type WindowState } from '../shared/window.js'
 import { checkConfig } from './_lib/config.js'
 
 // Tells the page which screen to show. Unconfigured (e.g. prod before launch) reads as "opens soon".
-export default function handler(_req: VercelRequest, res: VercelResponse) {
+export default function handler(_req: ApiRequest, res: ApiResponse) {
   res.setHeader('Cache-Control', 'no-store')
   let state: WindowState = 'not_open'
   if (checkConfig()) {

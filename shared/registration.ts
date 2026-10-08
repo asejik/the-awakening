@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { INSTITUTION_OTHER, INSTITUTIONS } from './event'
-import { normalizeNigerianPhone } from './phone'
+import { INSTITUTION_OTHER, INSTITUTIONS } from './event.js'
+import { normalizeNigerianPhone } from './phone.js'
 
 // One schema for the page (react-hook-form) and the server (/api/register).
 // The page POSTs exactly these values; the server parses them again and calls toPayload().

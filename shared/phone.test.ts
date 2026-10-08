@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeNigerianPhone } from './phone'
+import { normalizeNigerianPhone } from './phone.js'
 
 describe('normalizeNigerianPhone', () => {
   it.each([

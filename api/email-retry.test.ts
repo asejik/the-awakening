@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { ApiRequest, ApiResponse } from './_lib/http.js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const emailRetryBatch = vi.fn()
@@ -8,7 +8,7 @@ vi.mock('./_lib/db.js', () => ({ emailRetryBatch, setEmailStatus }))
 const sendMail = vi.fn()
 vi.mock('./_lib/mailer.js', () => ({ sendMail }))
 
-const { default: handler } = await import('./email-retry')
+const { default: handler } = await import('./email-retry.js')
 
 async function call(authorization?: string, method = 'POST') {
   const out = { statusCode: 0, body: undefined as unknown }
@@ -16,7 +16,7 @@ async function call(authorization?: string, method = 'POST') {
     status(code: number) { out.statusCode = code; return res },
     json(b: unknown) { out.body = b; return res },
   }
-  await handler({ method, headers: { authorization } } as unknown as VercelRequest, res as unknown as VercelResponse)
+  await handler({ method, headers: { authorization } } as unknown as ApiRequest, res as unknown as ApiResponse)
   return out
 }
 

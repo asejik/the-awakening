@@ -16,7 +16,7 @@ function sheetsCoerce(v: unknown): Cell {
 
 type Call = { fn: string; body: Record<string, unknown> }
 
-type Summary = Partial<Record<'total' | 'last_24h' | 'unsynced' | 'unsynced_oldest_minutes' | 'failed' | 'exhausted' | 'logged' | 'sent', number>>
+type Summary = Partial<Record<'total' | 'last_hour' | 'last_24h' | 'unsynced' | 'unsynced_oldest_minutes' | 'failed' | 'exhausted' | 'logged' | 'sent', number>>
 
 function load(opts: {
   pending?: Record<string, string>[]; existingIds?: string[]; retryUrl?: string; failRpc?: string
@@ -165,6 +165,12 @@ describe('alerts and daily digest (P03-01)', () => {
     const g = load({ alertEmail: 'b@x.co', failRpc: 'sheet_pending' })
     expect(() => g.sync()).toThrow()
     expect(g.mails[0].subject).toBe('[Awakening] Sheet sync is failing')
+  })
+
+  it('alerts on a registration spike', () => {
+    const g = load({ alertEmail: 'b@x.co', summary: { last_hour: 150 } })
+    g.sync()
+    expect(g.mails[0].subject).toBe('[Awakening] 150 registrations in the last hour')
   })
 
   it('sends a daily summary with the counts', () => {

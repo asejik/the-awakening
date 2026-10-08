@@ -1,6 +1,6 @@
 import { Camera } from 'lucide-react'
 import { useEffect, useRef } from 'react'
-import { EVENT } from '../../shared/event'
+import { COPY, EVENT } from '../../shared/event'
 
 type Props = { code: string; fullName: string }
 
@@ -72,7 +72,7 @@ export function SuccessTicket({ code, fullName }: Props) {
           <span>Screenshot this ticket. You'll need the code if you win.</span>
         </div>
         <p className="relative mx-auto mt-3 max-w-[300px] text-center font-text text-small text-ink">
-          Check your inbox (and spam) for a copy.
+          Check your inbox (and spam) for a copy. {COPY.winnerId}
         </p>
       </div>
     </section>

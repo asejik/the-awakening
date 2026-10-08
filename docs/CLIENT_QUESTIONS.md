@@ -20,7 +20,7 @@ Each question has a **suggested answer**. If you're not sure, simply reply "go w
 
 **3. How should we confirm that a winner is the real owner of the code?**
 *Why it matters:* codes can be screenshotted and shared, so someone else could claim a prize.
-*Suggested answer:* **The winner shows the code on their phone (email or screenshot) and gives their full name and phone number. An organiser checks these against the registration list.**
+*Decided (builder, 2026-10-08):* **The winner must be present, show the code (email or screenshot), and show an ID or student card that matches the registered name.** Before the draw, the team quickly reviews the list and removes obvious duplicate or fake entries. The registration form tells everyone this up front.
 
 **4. Can each person register only once?**
 *Why it matters:* without this, someone could register several times to get more raffle tickets.

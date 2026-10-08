@@ -53,7 +53,7 @@ export function confirmationEmail(to: string, fullName: string, code: string, re
     ...EVENT.days.map((d) => `${d.label}: ${d.weekday}, ${d.date} · ${d.time}`),
     `Venue: ${EVENT.venue}`,
     '',
-    "Keep this email or screenshot your ticket. You'll need your code if you win the raffle draw.",
+    "Keep this email or screenshot your ticket. You'll need your code if you win the raffle draw, and an ID that matches your registered name.",
     '',
     'See you there!',
     EVENT.host,

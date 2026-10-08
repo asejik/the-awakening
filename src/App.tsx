@@ -1,3 +1,4 @@
+import { EVENT } from '../shared/event'
 import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from 'react'
 import { ClosedPanel } from './components/ClosedPanel'
 import { DuplicateNotice } from './components/DuplicateNotice'
@@ -64,6 +65,21 @@ export default function App() {
           <ClosedPanel state={status.state} opensAt={status.opensAt} />
         )}
       </section>
+
+      <footer className="mx-auto max-w-[440px] border-t-2 border-ink/15 px-4 pb-10 pt-5 text-center font-text text-small text-muted">
+        <p>
+          Questions? Email{' '}
+          <a href={`mailto:${EVENT.contactEmail}`} className="font-semibold text-ember-700 underline underline-offset-2">
+            {EVENT.contactEmail}
+          </a>
+        </p>
+        <p className="mt-1">
+          {EVENT.host} ·{' '}
+          <a href="/privacy" className="underline underline-offset-2">
+            Privacy notice
+          </a>
+        </p>
+      </footer>
     </main>
   )
 }

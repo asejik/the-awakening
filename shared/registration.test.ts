@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fieldErrors, registrationSchema, toPayload } from './registration'
+import { fieldErrors, registrationSchema, toPayload } from './registration.js'
 
 const valid = {
   full_name: '  Tolulope Adeyemi ', gender: 'Female', institution: 'University of Ilorin', institution_other: '',

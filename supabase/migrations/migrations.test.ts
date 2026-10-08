@@ -28,10 +28,12 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   // Fresh schema per test: roll back, then migrate (also proves the pairs round-trip).
-  await db.exec('drop function if exists public.ops_summary(text)') // 002 object outlives 001's down
+  // 002/003 objects outlive 001's down migration
+  await db.exec('drop function if exists public.ops_summary(text); drop function if exists public.rate_limit_hit(text, integer, integer); drop table if exists public.rate_limits;')
   await db.exec(sql('001_registrations.down.sql'))
   await db.exec(sql('001_registrations.sql'))
   await db.exec(sql('002_ops.sql'))
+  await db.exec(sql('003_rate_limit.sql'))
 })
 
 describe('001_registrations', () => {
@@ -147,7 +149,32 @@ describe('001_registrations', () => {
     expect(anon_exec).toBe(false)
   })
 
+  it('003: allows up to the limit per window, then refuses', async () => {
+    const hit = async () => (await rpc<{ ok: boolean }>(`select public.rate_limit_hit('k1', 3, 600) as ok`))[0].ok
+    expect([await hit(), await hit(), await hit(), await hit()]).toEqual([true, true, true, false])
+    expect((await rpc<{ ok: boolean }>(`select public.rate_limit_hit('k2', 3, 600) as ok`))[0].ok).toBe(true)
+    const [{ anon_exec }] = await rpc<{ anon_exec: boolean }>(
+      `select has_function_privilege('anon', 'public.rate_limit_hit(text, integer, integer)', 'execute') as anon_exec`)
+    expect(anon_exec).toBe(false)
+    const [{ rls }] = await rpc<{ rls: boolean }>(`select relrowsecurity as rls from pg_class where relname = 'rate_limits'`)
+    expect(rls).toBe(true)
+  })
+
+  it('003: ops_summary reports last_hour for the spike alert', async () => {
+    await register(person('08011111111', 'a@example.com'))
+    const [{ s }] = await rpc<{ s: Record<string, number> }>(`select public.ops_summary('awakening-2026') as s`)
+    expect(s.last_hour).toBe(1)
+  })
+
+  it('003 rolls back to 002', async () => {
+    await db.exec(sql('003_rate_limit.down.sql'))
+    expect(await rpc(`select 1 from pg_tables where tablename = 'rate_limits'`)).toHaveLength(0)
+    const [{ s }] = await rpc<{ s: Record<string, number> }>(`select public.ops_summary('awakening-2026') as s`)
+    expect(s.last_hour).toBeUndefined()
+  })
+
   it('002 rolls back to 001 behaviour', async () => {
+    await db.exec(sql('003_rate_limit.down.sql'))
     await db.exec(sql('002_ops.down.sql'))
     const cols = await rpc(`select 1 from information_schema.columns where table_name = 'registrations' and column_name = 'retry_claimed_at'`)
     expect(cols).toHaveLength(0)
@@ -157,6 +184,7 @@ describe('001_registrations', () => {
   })
 
   it('rolls back cleanly', async () => {
+    await db.exec(sql('003_rate_limit.down.sql'))
     await db.exec(sql('002_ops.down.sql'))
     await db.exec(sql('001_registrations.down.sql'))
     const [{ n }] = await rpc<{ n: number }>(`select count(*)::int as n from pg_tables where tablename = 'registrations'`)

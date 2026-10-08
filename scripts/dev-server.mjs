@@ -33,7 +33,7 @@ const server = createServer(async (req, res) => {
     return res.writeHead(404).end()
   }
 
-  // Minimal VercelRequest/VercelResponse shim: parsed JSON body, query, status(), json().
+  // Minimal shim of the Vercel Node request/response (api/_lib/http.ts): parsed JSON body, query, status(), json().
   const raw = await readBody(req)
   try {
     req.body = raw && (req.headers['content-type'] ?? '').includes('application/json') ? JSON.parse(raw) : raw

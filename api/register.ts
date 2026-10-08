@@ -1,12 +1,40 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { createHash } from 'node:crypto'
+import type { ApiRequest, ApiResponse } from './_lib/http.js'
 import { waitUntil } from '@vercel/functions'
 import { fieldErrors, registrationSchema, toPayload } from '../shared/registration.js'
 import { registrationWindow } from '../shared/window.js'
 import { checkConfig, scrub } from './_lib/config.js'
-import { registerAttendee } from './_lib/db.js'
+import { rateLimitHit, registerAttendee } from './_lib/db.js'
 import { sendConfirmation } from './_lib/send-confirmation.js'
 
 const MIN_FILL_MS = 3_000
+// Per network: a whole hostel can share one campus IP, so this is generous (P04 S-02).
+// RATE_LIMIT_MAX overrides it for load tests and e2e against TEST.
+const RATE_WINDOW_SECONDS = 600
+const rateLimitMax = () => Number(process.env.RATE_LIMIT_MAX) || 20
+
+function clientIp(req: ApiRequest): string {
+  // On Vercel these headers are set by the platform (not client-controlled).
+  const real = req.headers['x-real-ip']
+  const forwarded = req.headers['x-forwarded-for']
+  const ip = (Array.isArray(real) ? real[0] : real) ?? String(forwarded ?? '').split(',')[0]
+  return ip?.trim() || req.socket?.remoteAddress || 'unknown'
+}
+
+/** Salted hash so the database never holds raw IP addresses. */
+function rateKey(req: ApiRequest): string {
+  return createHash('sha256').update(`${process.env.SUPABASE_SECRET_KEY}:register:${clientIp(req)}`).digest('hex')
+}
+
+async function withinRateLimit(req: ApiRequest): Promise<boolean> {
+  try {
+    return await rateLimitHit(rateKey(req), rateLimitMax(), RATE_WINDOW_SECONDS)
+  } catch (err) {
+    // Fail open: a limiter hiccup must not block real registrations.
+    console.error(JSON.stringify({ evt: 'ratelimit.error', error: scrub((err as Error).message) }))
+    return true
+  }
+}
 
 function looksLikeBot(body: Record<string, unknown>): boolean {
   const honeypot = typeof body.website === 'string' && body.website.trim() !== ''
@@ -14,7 +42,7 @@ function looksLikeBot(body: Record<string, unknown>): boolean {
   return honeypot || typeof elapsed !== 'number' || !Number.isFinite(elapsed) || elapsed < MIN_FILL_MS
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ status: 'method_not_allowed' })
   if (!checkConfig()) return res.status(503).json({ status: 'unavailable' })
 
@@ -22,9 +50,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const window = registrationWindow(new Date(), process.env.REGISTRATION_OPENS_AT, process.env.REGISTRATION_CLOSES_AT)
   if (window !== 'open') return res.status(403).json({ status: window })
 
+  if (!(await withinRateLimit(req))) {
+    console.warn(JSON.stringify({ evt: 'register.rate_limited' }))
+    return res.status(429).json({ status: 'rate_limited' })
+  }
+
   // Bots: a filled honeypot or a sub-3s submit gets the same reply as a human duplicate,
   // so nothing is saved or emailed and the bot learns nothing.
-  const raw = (typeof req.body === 'object' && req.body) || {}
+  const raw = (typeof req.body === 'object' && req.body ? req.body : {}) as Record<string, unknown>
   if (looksLikeBot(raw)) {
     console.log(JSON.stringify({ evt: 'register.bot' }))
     return res.status(200).json({ status: 'duplicate' })

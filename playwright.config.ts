@@ -18,7 +18,7 @@ export default defineConfig({
   },
   webServer: {
     command: 'node --env-file=.env.local scripts/dev-server.mjs',
-    env: { PORT: String(PORT), EMAIL_MODE: 'log', REGISTRATION_OPENS_AT: '', REGISTRATION_CLOSES_AT: '' },
+    env: { PORT: String(PORT), EMAIL_MODE: 'log', REGISTRATION_OPENS_AT: '', REGISTRATION_CLOSES_AT: '', RATE_LIMIT_MAX: '1000' },
     url: `http://localhost:${PORT}/api/health`,
     reuseExistingServer: false,
     timeout: 60_000,

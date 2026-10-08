@@ -571,7 +571,8 @@ Riskiest first. Every milestone deploys.
 **Run P04 + P08 + P03 PRE-LAUNCH first.**
 
 **Tasks:**
-- Run the migrations on LIVE Supabase; set prod env vars; set LIVE Script Properties (including `ALERT_EMAIL` and `IS_LIVE=true`) and `installTrigger()`
+- Run `node scripts/smoke.mjs <production URL>` after every deploy (it must pass; P03 R-01)
+- Run the migrations (`001`, `002`, `003`) on LIVE Supabase; set prod env vars; set LIVE Script Properties (including `ALERT_EMAIL` and `IS_LIVE=true`) and `installTrigger()`
 - Check `EVENT_SLUG` is identical in Vercel Production and the LIVE Script Properties (P03-07)
 - Verify what Supabase Free provides for backups; export a CSV and rehearse a restore into TEST (P03-08)
 - Add a `Deletions` tab to the LIVE Sheet (date, row id, requested via, done by) and the procedure to the admin guide (P03-09)
@@ -588,7 +589,8 @@ Riskiest first. Every milestone deploys.
 ### M6: Raffle draw page (M, Next)
 **Tasks:**
 - `/draw` route with the passphrase gate
-- `/api/draw` plus a `winners` migration (draw only among registrations not already drawn)
+- `/api/draw` plus a `winners` migration (draw only among registrations not already drawn; `ON DELETE CASCADE` from registrations)
+- **Draw rules (P04 S-03, decided):** winners must be present and show an ID matching the registered name; a **pre-draw review** step lets organisers exclude obvious duplicate or fake entries (an `excluded` flag, so they're never drawn)
 - Mirror winners to the Winners tab
 - Projector-friendly layout and animation
 - Playwright test 5

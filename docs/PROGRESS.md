@@ -133,3 +133,16 @@
 - Reports: `docs/audits/P04_2026-10-08.md`, `P08_2026-10-08.md`, `P03_2026-10-08_PRE-LAUNCH.md`.
 - **Critical (found by probing production after pushing main):** `/api/register` crashes on Vercel with `ERR_MODULE_NOT_FOUND`, because `shared/` uses extensionless ESM imports. No users affected (production shows "opens soon"). Fix pending approval.
 - **Others:** no rate limit (High); sock-puppet raffle entries (Medium, church draw rule); no security headers; hosted Supabase grants to verify; @vercel/node dev noise; SEO: Event JSON-LD, sitemap, privacy OG; support footer; deployed smoke script.
+
+## 2026-10-08 · Pre-launch audit fixes (AUDIT FIX: S-01, S-02, S-03, S-04, S-06, SEO-01..03, R-01, R-02)
+- **Changed:**
+  - `.js` ESM imports plus `nodenext` type-check (the production crash)
+  - Migration `003` rate limit (20 per IP per 10 min, hashed) plus a spike alert
+  - Raffle rules shown on the form, ticket and email
+  - Security headers / CSP
+  - `@vercel/node` removed (`npm audit` 0)
+  - Event JSON-LD, sitemap, robots, privacy OG
+  - Support footer
+  - `scripts/smoke.mjs` for deployed checks
+- **Checks:** 96 unit, 6/6 e2e.
+- **Pending builder:** run 003 on TEST; SQL/Security Advisor output (S-05); 2FA.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseWindowTime, registrationWindow } from './window'
+import { parseWindowTime, registrationWindow } from './window.js'
 
 const opens = '2026-10-13T08:00:00+01:00'
 const closes = '2026-10-25T12:00:00+01:00'

@@ -52,6 +52,10 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
   - `syncFromSupabase()` (5-minute trigger plus a "Sync now" menu) fetches `sheet_pending`, skips ids already in the Sheet, batch-appends, then calls `sheet_mark_synced`.
   - `phone` and `code` are written with a leading `'`, because Sheets drops leading zeros and turns `2E45` into a number (found in M1).
   - Prefix values starting with `= + - @` with `'`.
+- **`api/` runs as native Node ESM on Vercel (no bundler):** every relative import in `api/` and `shared/` needs a `.js` extension. `tsconfig.api.json` uses `nodenext`, so `npm run typecheck` fails otherwise. Missing extensions crashed production `/api/register` once (P04 S-01), invisible to local tests because Vite resolves them.
+- **After every deploy:** `node scripts/smoke.mjs <url>` (add `VERCEL_BYPASS=…` for previews). It checks the deployed functions, headers and SEO files.
+- **Rate limit:** `/api/register` allows 20 attempts per hashed IP per 10 min (`rate_limit_hit`, migration 003; fails open on limiter errors). Set `RATE_LIMIT_MAX=1000` on the local dev server for load tests (Playwright already does).
+- **Security headers and CSP** are in `vercel.json`. Scripts must be `'self'` only (no inline scripts); inline styles are allowed (inlined CSS). JSON-LD is fine (not executed).
 - **No secrets in `VITE_` variables.** `VITE_` variables are compiled into the bundle. The secrets are `SUPABASE_SECRET_KEY`, `SMTP_USER`, `SMTP_PASS`, `RETRY_SECRET` and `DRAW_PASSPHRASE`, and they stay server-side.
 - **Reuse:** event content lives in `shared/event.ts` (used by page and server), plus env vars (`EVENT_SLUG`, open/close times). Every table has an `event` column; each event gets its own Sheet.
 - **Prerender and hydration:** `dist/index.html` contains the server-rendered app and `main.tsx` hydrates it. Anything rendered at first paint must be SSR-safe (no `window` during render). The lazy `RegistrationForm` mounts only after hydration (`hydrated` flag in `App.tsx`); keep it that way, or React throws error #419.

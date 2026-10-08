@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CircleAlert, WifiOff } from 'lucide-react'
+import { CircleAlert, ShieldCheck, WifiOff } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { COPY, INSTITUTION_OTHER, INSTITUTIONS } from '../../shared/event'
@@ -14,7 +14,7 @@ import { TextField } from './form/TextField'
 
 type Done = Extract<SubmitResult, { kind: 'created' | 'duplicate' }>
 type Closed = Extract<SubmitResult, { kind: 'closed' | 'not_open' }>['kind']
-type Banner = 'offline' | 'error' | null
+type Banner = 'offline' | 'error' | 'rate_limited' | null
 
 const SLOW_AFTER_MS = 8_000
 
@@ -181,10 +181,17 @@ export function RegistrationForm({ onDone, onClosed }: { onDone: (result: Done) 
           <span>
             {banner === 'offline'
               ? "You seem to be offline. Your answers are still here. Tap the button again when you're connected."
-              : "We couldn't save your registration. Your answers are still here. Please try again in a minute."}
+              : banner === 'rate_limited'
+                ? 'Lots of registrations are coming from your network right now. Your answers are still here. Please try again in a few minutes.'
+                : "We couldn't save your registration. Your answers are still here. Please try again in a minute."}
           </span>
         </div>
       )}
+
+      <p className="mt-4 flex items-start gap-2.5 border-l-4 border-maroon bg-paper px-3 py-2.5 font-text text-small text-ink">
+        <ShieldCheck aria-hidden size={20} strokeWidth={2.25} className="mt-0.5 shrink-0 text-maroon" />
+        <span>{COPY.raffleRules}</span>
+      </p>
 
       {/* Honeypot: invisible to people (and screen readers); bots fill it in. */}
       <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">

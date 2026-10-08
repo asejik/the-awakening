@@ -115,7 +115,8 @@ export function Confirmation() {
 
             <Section className="px-5 pt-6">
               <Text className="m-0 bg-maroon px-4 py-3 text-center text-[16px] leading-[22px] text-cream">
-                Keep this email or screenshot your ticket. You'll need your code if you win the raffle draw.
+                Keep this email or screenshot your ticket. You'll need your code if you win the raffle draw, and an ID
+                that matches your registered name.
               </Text>
             </Section>
 

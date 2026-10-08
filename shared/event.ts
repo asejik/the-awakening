@@ -15,6 +15,9 @@ export const EVENT = {
   /** Always shown in full (builder decision 2026-10-08). */
   venue: 'Freedom Dome, Ilesanmi Bus Stop, Tanke, Ilorin',
   programme: ['Music', 'Freedom Studio Film', 'Word', 'Conscious Flow', 'Prayer'],
+  /** For structured data (SEO). The end time isn't known, so the end is a date only. */
+  schedule: { start: '2026-10-24T16:00:00+01:00', endDate: '2026-10-25' },
+  place: { name: 'Freedom Dome', street: 'Ilesanmi Bus Stop, Tanke', locality: 'Ilorin', region: 'Kwara', country: 'NG' },
 } as const
 
 /** Builder decision 2026-10-08: UNILORIN freshers are the main target; everyone else picks Other. */
@@ -29,4 +32,9 @@ export const COPY = {
     'Google) and will not be shared outside the church.',
   ageConfirm: "I am 18 or older, or I have my parent/guardian's consent.",
   followup: "Yes, I'd like the church to follow up with me by call or WhatsApp.",
+  /** P04 S-03 / builder decision: deter duplicate and fake entries. */
+  raffleRules:
+    'One registration per person. Duplicate or fake registrations will be reviewed and removed, and won\'t count in the raffle. ' +
+    'Winners must be present and show an ID that matches their registered name.',
+  winnerId: 'Winners must show an ID that matches this name.',
 } as const

@@ -1,5 +1,5 @@
 import { timingSafeEqual } from 'node:crypto'
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { ApiRequest, ApiResponse } from './_lib/http.js'
 import { checkConfig, scrub } from './_lib/config.js'
 import { emailRetryBatch } from './_lib/db.js'
 import { sendConfirmation } from './_lib/send-confirmation.js'
@@ -17,7 +17,7 @@ function authorized(header: string | undefined): boolean {
   return given.length === expected.length && timingSafeEqual(given, expected)
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ status: 'method_not_allowed' })
   if (!authorized(req.headers.authorization)) return res.status(401).json({ status: 'unauthorized' })
   if (!checkConfig()) return res.status(503).json({ status: 'unavailable' })

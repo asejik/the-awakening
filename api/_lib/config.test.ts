@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { configProblem, scrub } from './config'
+import { configProblem, scrub } from './config.js'
 
 const ok = { SUPABASE_URL: 'u', SUPABASE_SECRET_KEY: 'k', EVENT_SLUG: 'awakening-2026', EMAIL_MODE: 'log' }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { confirmationEmail, fillTemplate } from './email'
+import { confirmationEmail, fillTemplate } from './email.js'
 
 describe('confirmation email', () => {
   it('fills every placeholder and escapes user input', () => {

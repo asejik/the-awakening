@@ -7,6 +7,7 @@ export type SubmitResult =
   | { kind: 'offline' }
   | { kind: 'error' }
   | { kind: 'closed' | 'not_open' }
+  | { kind: 'rate_limited' }
 
 /** Sent alongside the form: a hidden honeypot and how long the form was open (server bot check). */
 export type BotSignals = { website: string; elapsed_ms: number }
@@ -35,6 +36,7 @@ export async function submitRegistration(values: Registration, signals: BotSigna
   }
   if (res.status === 200 && body.status === 'duplicate') return { kind: 'duplicate' }
   if (res.status === 400 && body.fields) return { kind: 'invalid', fields: body.fields }
+  if (res.status === 429) return { kind: 'rate_limited' }
   if (res.status === 403 && (body.status === 'closed' || body.status === 'not_open')) return { kind: body.status }
   return { kind: 'error' }
 }

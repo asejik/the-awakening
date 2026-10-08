@@ -141,6 +141,11 @@ function checkAlerts_() {
     alert_('emails-failing', s.failed + ' confirmation emails are failing',
       'Gmail may have hit its daily limit or the app password changed. They will keep retrying every 5 minutes.');
   }
+  if (s.last_hour > 120) {
+    alert_('registration-spike', s.last_hour + ' registrations in the last hour',
+      'Unusually many sign-ups. If this is outreach working, great. If the names look fake, it may be a bot: ' +
+      'check the Sheet, and consider enabling extra protection.');
+  }
   if (s.unsynced_oldest_minutes > 30) {
     alert_('sync-stalled', 'Sheet copy is ' + s.unsynced_oldest_minutes + ' minutes behind',
       s.unsynced + ' registration(s) are not in the Sheet yet. Try Awakening → Sync now; check the Log tab.');

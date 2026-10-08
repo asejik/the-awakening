@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // M1 load test for /api/register. Uses FAKE addresses, so the target MUST run with EMAIL_MODE=log.
+// The target must allow the burst: run the dev server with RATE_LIMIT_MAX=1000 (default limit is 20 per IP per 10 min).
 // Usage: node scripts/load-test.mjs --url http://localhost:3000/api/register --n 50 --email-mode-is-log [--retry-busy] [--p95 8000]
 //   --retry-busy  retry 503 busy up to 2 times with 1-3s jitter, like the registration page does
 //   --p95 <ms>    latency target (default 8000; 0 skips the check)

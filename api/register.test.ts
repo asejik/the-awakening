@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { ApiRequest, ApiResponse } from './_lib/http.js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const pending: Promise<unknown>[] = []
@@ -6,12 +6,13 @@ vi.mock('@vercel/functions', () => ({ waitUntil: (p: Promise<unknown>) => void p
 
 const registerAttendee = vi.fn()
 const setEmailStatus = vi.fn()
-vi.mock('./_lib/db.js', () => ({ registerAttendee, setEmailStatus }))
+const rateLimitHit = vi.fn()
+vi.mock('./_lib/db.js', () => ({ registerAttendee, setEmailStatus, rateLimitHit }))
 
 const sendMail = vi.fn()
 vi.mock('./_lib/mailer.js', () => ({ sendMail }))
 
-const { default: handler } = await import('./register')
+const { default: handler } = await import('./register.js')
 
 function fakeRes() {
   const out = { statusCode: 0, body: undefined as unknown }
@@ -19,12 +20,12 @@ function fakeRes() {
     status(code: number) { out.statusCode = code; return res },
     json(b: unknown) { out.body = b; return res },
   }
-  return { out, res: res as unknown as VercelResponse }
+  return { out, res: res as unknown as ApiResponse }
 }
 
 async function call(body: unknown, method = 'POST') {
   const { out, res } = fakeRes()
-  await handler({ method, body } as VercelRequest, res)
+  await handler({ method, body, headers: { 'x-real-ip': '203.0.113.7' } } as unknown as ApiRequest, res)
   await Promise.all(pending)
   return out
 }
@@ -43,6 +44,7 @@ beforeEach(() => {
   process.env.EVENT_SLUG = 'awakening-2026'
   process.env.EMAIL_MODE = 'log'
   setEmailStatus.mockResolvedValue(null)
+  rateLimitHit.mockResolvedValue(true)
   sendMail.mockResolvedValue('sent')
 })
 
@@ -89,6 +91,28 @@ describe('POST /api/register', () => {
     expect(res).toMatchObject({ statusCode: 200, body: { status: 'duplicate' } })
     expect(registerAttendee).not.toHaveBeenCalled()
     expect(sendMail).not.toHaveBeenCalled()
+  })
+
+  it('returns 429 once the network is over its limit, without saving', async () => {
+    rateLimitHit.mockResolvedValue(false)
+    const res = await call(valid)
+    expect(res).toMatchObject({ statusCode: 429, body: { status: 'rate_limited' } })
+    expect(registerAttendee).not.toHaveBeenCalled()
+  })
+
+  it('keys the limit on a salted hash of the IP, never the raw IP', async () => {
+    registerAttendee.mockResolvedValue({ status: 'created', id: 'r1', code: 'K7QX' })
+    await call(valid)
+    const [key, max, windowSeconds] = rateLimitHit.mock.calls[0]
+    expect(key).toMatch(/^[0-9a-f]{64}$/)
+    expect(key).not.toContain('203.0.113.7')
+    expect([max, windowSeconds]).toEqual([20, 600])
+  })
+
+  it('fails open if the limiter itself errors', async () => {
+    rateLimitHit.mockRejectedValue(new Error('rate_limit_hit: timeout'))
+    registerAttendee.mockResolvedValue({ status: 'created', id: 'r1', code: 'K7QX' })
+    expect((await call(valid)).statusCode).toBe(201)
   })
 
   it('rejects invalid input with the failing fields', async () => {
