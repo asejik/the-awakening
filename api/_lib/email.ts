@@ -14,7 +14,7 @@ export function confirmationEmail(to: string, fullName: string, code: string, re
     : `You're plugged in for ${EVENT.name}! Here's your raffle code.`
   const details = [
     ...EVENT.days.map((d) => `${d.label}: ${d.weekday}, ${d.date} · ${d.time}`),
-    `${EVENT.venue.name}, ${EVENT.venue.address}`,
+    EVENT.venue,
   ]
 
   const text = [

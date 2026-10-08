@@ -21,14 +21,11 @@ export default function App() {
     <main>
       {/* M2 hero stand-in; the full poster hero (starburst, Day badges) lands in M3. */}
       <header className="mx-auto flex max-w-[440px] flex-col items-center px-4 pb-6 pt-5 text-center">
-        <div className="flex items-center gap-2 self-start">
-          <img src="/assets/clc-mark.webp" alt="" width={34} height={34} className="rounded-full" />
-          <span className="text-left font-text text-meta font-bold uppercase leading-tight tracking-wide text-ink">
-            Citizens
-            <br />
-            of Light Church
-          </span>
-        </div>
+        {/* The supplied logo, unaltered: it already carries the church name. */}
+        <picture className="block w-20 self-start">
+          <source srcSet="/assets/clc-logo.webp" type="image/webp" />
+          <img src="/assets/clc-logo.png" alt={EVENT.host} width={264} height={336} className="h-auto w-full" />
+        </picture>
         <picture className="mt-6 block w-full">
           <source srcSet="/assets/title.webp" type="image/webp" />
           <img src="/assets/title.png" alt={EVENT.name} width={720} height={562} className="h-auto w-full" />
@@ -41,7 +38,7 @@ export default function App() {
         <p className="mt-4 font-text text-detail font-bold uppercase italic text-muted">
           {EVENT.days.map((d) => `${d.date} · ${d.time}`).join(' & ')}
           <br />
-          {EVENT.venue.name}, Ilorin
+          {EVENT.venue}
         </p>
       </header>
 

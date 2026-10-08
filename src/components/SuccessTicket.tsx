@@ -56,7 +56,7 @@ export function SuccessTicket({ code, fullName }: Props) {
             ))}
             <div className="col-span-2">
               <dt className="text-[12px] font-bold not-italic tracking-[0.1em] text-muted">Venue</dt>
-              <dd>{EVENT.venue.name}, Ilorin</dd>
+              <dd>{EVENT.venue}</dd>
             </div>
           </dl>
           <span

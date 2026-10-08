@@ -10,10 +10,8 @@ export const EVENT = {
     { label: 'Day 1', date: 'Oct. 24th', weekday: 'Saturday', time: '4PM' },
     { label: 'Day 2', date: 'Oct. 25th', weekday: 'Sunday', time: '9AM' },
   ],
-  venue: {
-    name: 'Freedom Dome, Tanke',
-    address: 'Ilesanmi Bus Stop, University Road, Tanke, Ilorin',
-  },
+  /** Always shown in full (builder decision 2026-10-08). */
+  venue: 'Freedom Dome, Ilesanmi Bus Stop, Tanke, Ilorin',
   programme: ['Music', 'Freedom Studio Film', 'Word', 'Conscious Flow', 'Prayer'],
 } as const
 
