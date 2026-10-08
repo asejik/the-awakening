@@ -1,11 +1,12 @@
 import { Camera } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { COPY, EVENT } from '../../shared/event'
+import { Button } from './Button'
 
-type Props = { code: string; fullName: string }
+type Props = { code: string; fullName: string; onBack: () => void }
 
 /** The raffle ticket (DESIGN.md §7): settles in, then the ENTERED! stamp lands (§6 item 5). */
-export function SuccessTicket({ code, fullName }: Props) {
+export function SuccessTicket({ code, fullName, onBack }: Props) {
   const headingRef = useRef<HTMLHeadingElement>(null)
   useEffect(() => headingRef.current?.focus(), [])
   const firstName = fullName.trim().split(/\s+/)[0]
@@ -74,6 +75,11 @@ export function SuccessTicket({ code, fullName }: Props) {
         <p className="relative mx-auto mt-3 max-w-[300px] text-center font-text text-small text-ink">
           Check your inbox (and spam) for a copy. {COPY.winnerId}
         </p>
+        <div className="relative mt-7 flex justify-center">
+          <Button variant="secondary" onClick={onBack}>
+            ← Back to home
+          </Button>
+        </div>
       </div>
     </section>
   )

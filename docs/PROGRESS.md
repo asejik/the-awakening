@@ -181,3 +181,6 @@
 - **New required field: Level** (100–500). Migration `005_level.sql` (ADDITIVE, live-safe default ''). `register_attendee` and `sheet_pending` updated. The Sheet gets `level` as its **last** column (`setupSheet` now accepts appended columns). Export, privacy notice and admin guide updated.
 - **Bug caught in review:** the Level select silently showed "100 Level" (an undefined default); it now defaults to blank, so the placeholder shows.
 - **Deploy order:** run 005 on TEST and LIVE **before** pushing (otherwise level would be silently dropped by the old function).
+
+## 2026-10-08 · "Back to home" button (builder request)
+- A secondary "← Back to home" button on the success ticket and on the "already registered" notice. It returns to the poster with an empty form (handy for registering a friend on the same phone). The happy-path e2e test clicks it and checks for an empty form.

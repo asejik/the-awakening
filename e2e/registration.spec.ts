@@ -33,6 +33,11 @@ test('happy path: register and see the raffle ticket', async ({ page }) => {
   await expect(page.getByRole('heading', { name: "You're plugged in, E2E!" })).toBeVisible()
   await expect(page.getByText('E2E Tester')).toBeVisible()
   await expect(page.getByLabel(/^Your raffle code is [2-9A-HJKMNP-Z]( [2-9A-HJKMNP-Z]){3}$/)).toBeVisible()
+
+  // Back to home: poster again, with an empty form ready for the next person
+  await page.getByRole('button', { name: '← Back to home' }).click()
+  await expect(page.getByRole('heading', { name: 'Register now' })).toBeVisible()
+  await expect(page.getByLabel('Full name')).toHaveValue('')
 })
 
 test('bus = Yes reveals area and address, which become required', async ({ page }) => {

@@ -36,8 +36,14 @@ export default function App() {
     setDone(result)
   }
 
-  if (done?.kind === 'created') return <SuccessTicket code={done.code} fullName={done.fullName} />
-  if (done?.kind === 'duplicate') return <DuplicateNotice />
+  // Back to the poster and a fresh form (the draft was cleared on success), e.g. to register a friend.
+  const backToHome = () => {
+    setDone(null)
+    window.scrollTo(0, 0)
+  }
+
+  if (done?.kind === 'created') return <SuccessTicket code={done.code} fullName={done.fullName} onBack={backToHome} />
+  if (done?.kind === 'duplicate') return <DuplicateNotice onBack={backToHome} />
 
   return (
     <main>
