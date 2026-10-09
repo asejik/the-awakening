@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A branded, mobile-first registration page for **The Awakening: Freshers Plug In** (Citizens of Light Church, Ilorin; Sat Oct 31 4PM & Sun Nov 1 9AM, 2026, rescheduled from Oct 24–25). Each registrant gets a unique 4-character raffle code, shown on screen and emailed, and becomes one row in the church's Google Sheet. A passphrase-protected raffle draw page comes after launch.
+A branded, mobile-first registration page for **The Awakening** (Citizens of Light Church, Ilorin; Sat Oct 31 4PM & Sun Nov 1 9AM, 2026, rescheduled from Oct 24–25). Each registrant gets a unique 4-character raffle code, shown on screen and emailed, and becomes one row in the church's Google Sheet. A passphrase-protected raffle draw page comes after launch.
 
 - **Owner:** client, Citizens of Light Church. Built by asejik.
 - **Rigor level:** STANDARD
@@ -26,9 +26,9 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
 - `npm run dev:full`: frontend plus `/api` functions via `scripts/dev-server.mjs` (Vite middleware, Vercel-style handler shim), with env from `.env.local`. Use this, not `vercel dev`, which was slow and did not load `.env.local` here.
 - `npm run build`: type check (`tsc -b`), Vite build, SSR build of `src/entry-server.tsx`, then `scripts/prerender.mjs` (injects the rendered HTML into `dist/index.html` and inlines the CSS)
 - `npm run email:build`: re-render `emails/Confirmation.tsx` into `api/_lib/email-template.ts`. **Run it after any email change**; a test fails if the template is stale.
-- `npm run typecheck`: `tsc -b` across three projects: `tsconfig.app.json` (src), `tsconfig.node.json` (configs) and `tsconfig.api.json` (api)
+- `npm run typecheck`: `tsc -b` across `tsconfig.app.json` (src), `tsconfig.node.json` (configs), `tsconfig.api.json` (api, `nodenext`), `tsconfig.emails.json` and `tsconfig.e2e.json`
 - `npm run lint`: oxlint, config in `.oxlintrc.json`
-- `npm test`: runs all Vitest tests (`src/**/*.test.ts`, `api/**/*.test.ts`). For a single test: `npx vitest run path/to/file.test.ts -t "name"`.
+- `npm test`: runs all Vitest tests (`src`, `api`, `shared`, `apps-script`, `supabase` (PGlite) and `emails`). For a single test: `npx vitest run path/to/file.test.ts -t "name"`.
 - `bash scripts/clip.sh <files…>`: copy files to the Windows clipboard from WSL (UTF-8 safe), e.g. migrations for the Supabase SQL editor or `apps-script/Code.gs`
 - `node --env-file=.env.live scripts/export-registrations.mjs > file.csv`: CSV backup of one event (`.env.live` is git-ignored)
 - `npm run test:e2e`: Playwright smoke tests (`e2e/`). They start their own dev server on :3200 against TEST with `EMAIL_MODE=log`, and delete `source=e2e` rows afterwards. For a single test: `npx playwright test e2e/registration.spec.ts -g "name"`. E2E submits wait 3s, because the server treats faster submits as bots.
@@ -37,7 +37,7 @@ A branded, mobile-first registration page for **The Awakening: Freshers Plug In*
 
 - `src/`: React SPA. Tokens are in `src/styles/theme.css`, mirroring docs/DESIGN.md §9; custom utilities `border-ink`, `border-ink-thick`, `reveal` live there too. Form controls are in `src/components/form/`.
 - `shared/`: code used by both the page and `api/`: `registration.ts` (the one zod schema plus `toPayload`), `event.ts` (event content), `phone.ts`.
-- `api/`: Vercel Functions (Node, `@vercel/node` types)
+- `api/`: Vercel Functions (native Node ESM; request/response types in `api/_lib/http.ts`, no `@vercel/node`)
 - `apps-script/Code.gs`: pasted by hand into each event Sheet's Apps Script editor. It isn't deployed from this repo.
 - `public/assets/`, `public/fonts/` (self-hosted woff2), `public/og.jpg` (link preview; `scripts/make-og.py` rebuilds it): files actually shipped
 - `emails/`: email source (React Email + Tailwind). Fluid layout only, no `sm:` classes, no `<Font>` (see DESIGN.md §11).
